@@ -1,0 +1,41 @@
+Lab UI (dev.larattalabs:lab_ui)
+Copyright (c) 2026 AgentCraft contributors
+Copyright (c) 2026 Laratta Labs (AgentCraft Worlds changes)
+Licensed under the MIT License (see LICENSE).
+
+Lab UI is extracted from AgentCraft Worlds (https://github.com/larattalabs/agentcraft-worlds), the
+Laratta Labs fork of AgentCraft by blendi-remade (https://github.com/blendi-remade/agentcraft), both MIT.
+Extraction source: agentcraft-worlds commit 1966066 (2026-10-09). Only the package (dev.larattalabs.labui.*)
+and the resource namespace (lab_ui) were changed, plus the seams listed in README.md "What changed in the move".
+
+Files derived from upstream AgentCraft (first written by AgentCraft contributors, then changed in the fork)
+---------------------------------------------------------------------------------------------------------
+src/client/java/dev/larattalabs/labui/client/ui/WorldUi.java        (upstream client/ui/WorldUi; fork added liftText/eyeDistance)
+src/client/java/dev/larattalabs/labui/client/ui/GuardedHud.java     (upstream client/ui/GuardedHud)
+src/client/java/dev/larattalabs/labui/client/ui/Kit.java            (upstream client/ui/Kit)
+src/client/java/dev/larattalabs/labui/client/ui/Panels.java         (upstream client/ui/Panels)
+src/client/java/dev/larattalabs/labui/client/ui/UiStyle.java        (upstream client/ui/UiStyle, agent colour lookups removed)
+src/client/java/dev/larattalabs/labui/client/ui/TextUtil.java       (upstream client/ui/TextUtil)
+src/client/java/dev/larattalabs/labui/client/hud/UiBits.java        (upstream client/hud/UiBits, agent/portrait helpers removed)
+src/client/java/dev/larattalabs/labui/client/monitor/DisplayDraw.java (upstream client/monitor/DisplayDraw)
+src/client/java/dev/larattalabs/labui/client/monitor/ScreenStyle.java (upstream client/monitor/ScreenStyle, name() removed)
+src/client/java/dev/larattalabs/labui/client/world/SpeechBubble.java (upstream client/agents/SpeechBubble, Addressees seam added)
+
+Files written in the fork (Laratta Labs, AgentCraft Worlds changes)
+------------------------------------------------------------------
+src/main/java/dev/larattalabs/labui/ui/TextDepth.java       and src/test/.../ui/TextDepthTest.java
+src/main/java/dev/larattalabs/labui/ui/LeaderGaps.java      and src/test/.../ui/LeaderGapsTest.java
+src/main/java/dev/larattalabs/labui/ui/Guard.java           and src/test/.../ui/GuardTest.java
+src/main/java/dev/larattalabs/labui/LabUi.java              (new for lab-ui)
+
+Art and style data (upstream AgentCraft "Warm Studio" art track)
+----------------------------------------------------------------
+src/main/resources/assets/lab_ui/textures/gui/sprites/kit/*.png and *.png.mcmeta
+    All 114 files are byte-identical to upstream AgentCraft's assets/agentcraft/textures/gui/sprites/kit/
+    (added by blendi-remade on 2026-10-01, commit e67ab16); the fork only moved them.
+src/main/resources/assets/lab_ui/gui/kit.json
+    Upstream's file with the namespace rewritten (agentcraft -> agentcraft_worlds -> lab_ui).
+src/main/resources/assets/lab_ui/gui/ui-style.json
+src/main/resources/assets/lab_ui/palette.json
+    Upstream's files plus the fork's additions (the ines, bram and cass cast colours, an auburn ramp,
+    re-measured contrast figures).

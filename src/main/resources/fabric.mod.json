@@ -1,0 +1,29 @@
+{
+	"schemaVersion": 1,
+	"id": "lab_ui",
+	"version": "${version}",
+	"name": "Lab UI",
+	"description": "Shared client UI library of the Laratta Labs mods: the Warm Studio GUI kit (sprites, panels, style tokens), world-space UI (billboards, speech bubbles, face displays) and crash-guarded HUD handlers. Derived from AgentCraft by blendi-remade.",
+	"authors": [
+		"Laratta Labs",
+		"AgentCraft contributors"
+	],
+	"license": "MIT",
+	"environment": "*",
+	"depends": {
+		"fabricloader": ">=0.19.5",
+		"minecraft": "~26.3",
+		"java": ">=25",
+		"fabric-api": "*"
+	},
+	"custom": {
+		"modmenu": {
+			"badges": ["library"]
+		}
+	},
+	"contact": {
+		"homepage": "https://github.com/larattalabs/lab-ui",
+		"sources": "https://github.com/larattalabs/lab-ui",
+		"issues": "https://github.com/larattalabs/lab-ui/issues"
+	}
+}

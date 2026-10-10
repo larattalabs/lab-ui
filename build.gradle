@@ -1,0 +1,98 @@
+plugins {
+	// Minecraft 26.x is unobfuscated: the non-remapping Loom plugin is used (no mappings, no remapJar).
+	id 'net.fabricmc.fabric-loom' version "${loom_version}"
+	id 'maven-publish'
+}
+
+version = project.mod_version
+group = project.maven_group
+
+base {
+	archivesName = project.archives_base_name
+}
+
+repositories {
+	mavenCentral()
+}
+
+loom {
+	splitEnvironmentSourceSets()
+
+	mods {
+		"lab_ui" {
+			sourceSet sourceSets.main
+			sourceSet sourceSets.client
+		}
+	}
+}
+
+dependencies {
+	minecraft "com.mojang:minecraft:${project.minecraft_version}"
+	implementation "net.fabricmc:fabric-loader:${project.loader_version}"
+	implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+
+	// Unit tests (src/test/java) for the pure classes (TextDepth, LeaderGaps, Guard).
+	testImplementation platform("org.junit:junit-bom:${project.junit_version}")
+	testImplementation "org.junit.jupiter:junit-jupiter"
+	testRuntimeOnly "org.junit.platform:junit-platform-launcher"
+}
+
+test {
+	useJUnitPlatform()
+	testLogging {
+		events "failed"
+		exceptionFormat "full"
+	}
+}
+
+processResources {
+	def version = project.version
+	inputs.property "version", version
+	filesMatching("fabric.mod.json") {
+		expand "version": version
+	}
+}
+
+// MIT: the licence and the attribution notice travel with every copy, also a jar nested in a consumer's jar (jar-in-jar).
+jar {
+	from("LICENSE", "NOTICE")
+}
+
+tasks.matching { it.name == "sourcesJar" }.configureEach {
+	from("LICENSE", "NOTICE")
+}
+
+tasks.withType(JavaCompile).configureEach {
+	it.options.release = 25
+	it.options.encoding = "UTF-8"
+}
+
+java {
+	sourceCompatibility = JavaVersion.VERSION_25
+	targetCompatibility = JavaVersion.VERSION_25
+	withSourcesJar()
+}
+
+// `./gradlew publishToMavenLocal` publishes dev.larattalabs:lab_ui:<version> (the mod jar plus a sources jar).
+publishing {
+	publications {
+		mavenJava(MavenPublication) {
+			groupId = 'dev.larattalabs'
+			artifactId = 'lab_ui'
+			from components.java
+		}
+	}
+	// CI on release tags (.github/workflows/publish.yml): GitHub Packages, only when the workflow's token is there
+	if (System.getenv("GITHUB_TOKEN")) {
+		repositories {
+			maven {
+				name = 'GitHubPackages'
+				url = uri('https://maven.pkg.github.com/larattalabs/lab-ui')
+				credentials {
+					username = System.getenv('GITHUB_ACTOR')
+					password = System.getenv('GITHUB_TOKEN')
+				}
+			}
+		}
+	}
+}

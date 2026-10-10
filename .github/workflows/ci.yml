@@ -1,0 +1,29 @@
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 25
+      - name: Build and tests
+        run: ./gradlew --no-daemon build
+      - name: The jar carries the classes, the sprites, the style files and the licence
+        run: |
+          j=build/libs/lab_ui-$(grep '^mod_version=' gradle.properties | cut -d= -f2).jar
+          l=$(unzip -l "$j")
+          for f in fabric.mod.json LICENSE NOTICE \
+            dev/larattalabs/labui/client/ui/WorldUi.class dev/larattalabs/labui/client/ui/Kit.class \
+            dev/larattalabs/labui/ui/Guard.class \
+            assets/lab_ui/gui/kit.json assets/lab_ui/gui/ui-style.json assets/lab_ui/palette.json \
+            assets/lab_ui/textures/gui/sprites/kit/panel_paper.png assets/lab_ui/textures/gui/sprites/kit/panel_paper.png.mcmeta; do
+            echo "$l" | grep -q " $f\$" || { echo "missing in $j: $f"; exit 1; }
+          done
