@@ -63,7 +63,7 @@ Also declare the range in your `fabric.mod.json`. Then a clash between two mods 
 "depends": { "lab_ui": ">=0.1.0 <0.2.0" }
 ```
 
-**CI in a consumer repo.** The workflow needs `permissions: packages: read` and the env `GITHUB_ACTOR: ${{ github.actor }}`, `GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}`. A repo's `GITHUB_TOKEN` can read another repo's package only if that repo has been given access in the package settings: github.com/orgs/larattalabs/packages, then `lab_ui`, then "Manage Actions access". If the package was not granted, use a PAT secret with `read:packages`.
+**CI in a consumer repo.** Steward's CI already resolves `dev.larattalabs:architect_mc` from GitHub Packages this way: give the workflow `permissions: packages: read`, and set the env `GITHUB_ACTOR: ${{ github.actor }}` and `GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}` for the Gradle step. If a consumer run still gets 401/403 on `lab_ui`, there are two fixes. Either grant that repo access in the package settings (github.com/larattalabs/lab-ui/packages, then "Package settings", then "Manage Actions access"), or use a PAT secret with `read:packages` instead.
 
 **Local development against an unreleased lab-ui.** Run `./gradlew publishToMavenLocal` here, and add `mavenLocal()` to the consumer's repositories.
 

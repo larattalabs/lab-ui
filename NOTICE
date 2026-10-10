@@ -8,17 +8,17 @@ Laratta Labs fork of AgentCraft by blendi-remade (https://github.com/blendi-rema
 Extraction source: agentcraft-worlds commit 1966066 (2026-10-09). Only the package (dev.larattalabs.labui.*)
 and the resource namespace (lab_ui) were changed, plus the seams listed in README.md "What changed in the move".
 
-Files derived from upstream AgentCraft (first written by AgentCraft contributors, then changed in the fork)
----------------------------------------------------------------------------------------------------------
+Files derived from upstream AgentCraft (present in upstream; the fork may have changed them)
+------------------------------------------------------------------------------------------
 src/client/java/dev/larattalabs/labui/client/ui/WorldUi.java        (upstream client/ui/WorldUi; fork added liftText/eyeDistance)
-src/client/java/dev/larattalabs/labui/client/ui/GuardedHud.java     (upstream client/ui/GuardedHud)
+src/client/java/dev/larattalabs/labui/client/ui/GuardedHud.java     (written in the fork, contributed to upstream client/ui/GuardedHud)
 src/client/java/dev/larattalabs/labui/client/ui/Kit.java            (upstream client/ui/Kit)
 src/client/java/dev/larattalabs/labui/client/ui/Panels.java         (upstream client/ui/Panels)
 src/client/java/dev/larattalabs/labui/client/ui/UiStyle.java        (upstream client/ui/UiStyle, agent colour lookups removed)
-src/client/java/dev/larattalabs/labui/client/ui/TextUtil.java       (upstream client/ui/TextUtil)
-src/client/java/dev/larattalabs/labui/client/hud/UiBits.java        (upstream client/hud/UiBits, agent/portrait helpers removed)
-src/client/java/dev/larattalabs/labui/client/monitor/DisplayDraw.java (upstream client/monitor/DisplayDraw)
-src/client/java/dev/larattalabs/labui/client/monitor/ScreenStyle.java (upstream client/monitor/ScreenStyle, name() removed)
+src/client/java/dev/larattalabs/labui/client/ui/TextUtil.java       (upstream client/ui/TextUtil, unchanged)
+src/client/java/dev/larattalabs/labui/client/hud/UiBits.java        (upstream client/hud/UiBits, unchanged apart from removing the agent/portrait helpers)
+src/client/java/dev/larattalabs/labui/client/monitor/DisplayDraw.java (upstream client/monitor/DisplayDraw, unchanged)
+src/client/java/dev/larattalabs/labui/client/monitor/ScreenStyle.java (upstream client/monitor/ScreenStyle, unchanged apart from removing name())
 src/client/java/dev/larattalabs/labui/client/world/SpeechBubble.java (upstream client/agents/SpeechBubble, Addressees seam added)
 
 Files written in the fork (Laratta Labs, AgentCraft Worlds changes)
