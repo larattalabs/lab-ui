@@ -33,7 +33,7 @@ Prefer additive changes (new methods, new overloads) over changing signatures.
 
 ## Licence and attribution
 
-MIT, two copyright lines (AgentCraft contributors; Laratta Labs, AgentCraft Worlds changes). Code or art taken from
+MIT, two copyright lines (AgentCraft contributors; Laratta Labs, lab-ui changes). Code or art taken from
 AgentCraft (upstream blendi-remade/agentcraft or the fork) keeps both lines: add each such file to NOTICE with its source
 path and whether it is upstream-derived or fork-written (check with `git log` / `git cat-file -e upstream/main:<path>` in
 the AgentCraft checkout). LICENSE and NOTICE ship inside the jar; keep that.
