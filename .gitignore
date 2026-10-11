@@ -8,3 +8,13 @@ out/
 .env
 .idea/
 .DS_Store
+bin/
+remappedSrc/
+*.iml
+*.ipr
+*.iws
+.vscode/
+.classpath
+.project
+.settings/
+*.launch
