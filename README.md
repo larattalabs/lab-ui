@@ -72,12 +72,18 @@ With `splitEnvironmentSourceSets()`, `implementation` covers both `main` and `cl
 
 ### Build it from source
 
-You need git and JDK 25. On macOS, `brew install openjdk@25`; on Linux, any JDK 25 build (for example Eclipse Temurin). Gradle comes with the wrapper.
+You need git and JDK 25; Gradle comes with the wrapper. On Linux, install any JDK 25 build (for example Eclipse Temurin) so `java` is on your PATH. On macOS with Homebrew, the JDK is keg-only, so point `JAVA_HOME` at it:
+
+```sh
+brew install openjdk@25
+export JAVA_HOME="$(brew --prefix openjdk@25)"
+```
+
+Then:
 
 ```sh
 git clone https://github.com/larattalabs/lab-ui.git
 cd lab-ui
-export JAVA_HOME=/opt/homebrew/opt/openjdk@25   # macOS with Homebrew; on Linux, point it at your JDK 25
 ./gradlew build                 # compile, unit tests (TextDepth, LeaderGaps, Guard), jar in build/libs/
 ./gradlew publishToMavenLocal   # dev.larattalabs:lab_ui:<version> in ~/.m2
 ```
