@@ -41,7 +41,9 @@ public final class ScrollList<T> {
 	public static final int BAR_W = 6;
 	public static final int FILTER_GAP = 3;
 	private static final long DOUBLE_CLICK_MS = 350;
-	private static final TextFieldView.Style FILTER_HIT = new TextFieldView.Style(null, 0, null, null, null, 0, 1);
+	/** The search glyph before a filter or search field (U+2315, in the vanilla font). */
+	public static final String SEARCH_GLYPH = "\u2315";
+	private static final TextFieldView.Style FILTER_HIT = new TextFieldView.Style(SEARCH_GLYPH, 0, null, null, null, 0, 1);
 
 	/** Paints one row's content (the list draws the selection and hover backgrounds first). */
 	@FunctionalInterface
@@ -201,7 +203,7 @@ public final class ScrollList<T> {
 			fx = x;
 			fy = y;
 			fw = w;
-			filterView.draw(g, font, filter, x, y, w, focused, new TextFieldView.Style("⌕", UiStyle.mutedText(), filterPlaceholder, null,
+			filterView.draw(g, font, filter, x, y, w, focused, new TextFieldView.Style(SEARCH_GLYPH, UiStyle.mutedText(), filterPlaceholder, null,
 				filter.isEmpty() ? null : shown.size() + "/" + items.size(), UiStyle.mutedText(), 1));
 			top += TextFieldView.BASE_H + FILTER_GAP;
 		}
@@ -276,7 +278,7 @@ public final class ScrollList<T> {
 		}
 		if (inFilter(mx, my)) {
 			focused = true;
-			int at = filterView.hit(net.minecraft.client.Minecraft.getInstance().font, filter, fx, fy, fw, new TextFieldView.Style("⌕", 0, null, null, null, 0, 1), mx, my);
+			int at = filterView.hit(net.minecraft.client.Minecraft.getInstance().font, filter, fx, fy, fw, FILTER_HIT, mx, my);
 			if (at >= 0) {
 				filter.moveTo(at, false);
 			}

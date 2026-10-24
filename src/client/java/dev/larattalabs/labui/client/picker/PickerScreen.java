@@ -13,6 +13,7 @@ import dev.larattalabs.labui.client.widget.Chip;
 import dev.larattalabs.labui.client.widget.EmptyState;
 import dev.larattalabs.labui.client.widget.NavKeys;
 import dev.larattalabs.labui.client.widget.Paint;
+import dev.larattalabs.labui.client.widget.ScrollList;
 import dev.larattalabs.labui.client.widget.Tooltip;
 import dev.larattalabs.labui.ui.ChipFlow;
 import dev.larattalabs.labui.ui.ListNav;
@@ -70,6 +71,10 @@ public class PickerScreen extends Screen {
 	private List<String> recentIds = List.of();
 	private Focus focus = Focus.SEARCH;
 	private @Nullable String hoveredId;
+	/** The cell under the mouse fills the detail pane only once the mouse has moved onto it since the last key. */
+	private @Nullable String hoverShown;
+	private boolean keyLast = true;
+	private boolean revealPending = true;
 	private int gridScroll;
 	private int railScroll;
 	private int dragGrab = -1;
@@ -170,7 +175,10 @@ public class PickerScreen extends Screen {
 	}
 
 	private @Nullable PickerEntry detailEntry() {
-		if (hoveredId != null) {
+		if (visible.isEmpty()) {
+			return null;
+		}
+		if (hoveredId != null && !keyLast) {
 			PickerEntry h = spec.byId(hoveredId);
 			if (h != null) {
 				return h;
@@ -261,7 +269,7 @@ public class PickerScreen extends Screen {
 
 	private void drawTitle(GuiGraphicsExtractor g, Font f, int x, int y, int w, int mx, int my) {
 		g.fill(x, y, x + w, y + TITLE_H, UiStyle.titleBar());
-		int bw = back.width(f) - 12;
+		int bw = f.width(back.label()) + 14;
 		back.draw(g, f, x + 3, y + 2, bw, Button.MIN_H, mx, my);
 		int tx = x + 3 + bw + 8;
 		String hint = spec.subtitle() != null ? spec.subtitle() : "Arrows move · Enter pick · Esc back";
@@ -276,7 +284,7 @@ public class PickerScreen extends Screen {
 
 	private TextFieldView.Style searchStyle() {
 		String hint = search.isEmpty() ? null : model.count(null) + " found";
-		return new TextFieldView.Style(null, 0, "Search " + spec.entries().size() + " " + spec.noun() + "…", null, hint, UiStyle.mutedText(), 1);
+		return new TextFieldView.Style(ScrollList.SEARCH_GLYPH, UiStyle.mutedText(), "Search " + spec.entries().size() + " " + spec.noun() + "…", null, hint, UiStyle.mutedText(), 1);
 	}
 
 	private int drawHead(GuiGraphicsExtractor g, Font f, int x, int y, int w, int mx, int my) {
@@ -362,10 +370,11 @@ public class PickerScreen extends Screen {
 			} else if (hov) {
 				g.fill(rx, yy, rx + rw, yy + RAIL_ROW, UiStyle.rowHover());
 			}
-			String count = Integer.toString(model.count(grp));
+			int n = model.count(grp);
+			String count = Integer.toString(n);
 			int cw = f.width(count);
 			String name = grp == null ? "All" : grp.isEmpty() ? "Other" : grp;
-			g.text(f, TextUtil.ellipsize(f, name, rw - cw - 16), rx + 7, yy + 3, UiStyle.INK, false);
+			g.text(f, TextUtil.ellipsize(f, name, rw - cw - 16), rx + 7, yy + 3, n == 0 && !on ? UiStyle.color("paper.disabled", 0xFFA39B8E) : UiStyle.INK, false);
 			g.text(f, count, rx + rw - 5 - cw, yy + 3, UiStyle.mutedText(), false);
 		}
 		g.disableScissor();
@@ -447,6 +456,16 @@ public class PickerScreen extends Screen {
 			}
 		}
 		g.disableScissor();
+		if (revealPending) {
+			// the first frame: a mouse resting where the screen opened does not count as a hover
+			revealPending = false;
+			hoverShown = hoveredId;
+			revealSelection();
+		}
+		if (hoveredId != null && !hoveredId.equals(hoverShown)) {
+			keyLast = false;
+		}
+		hoverShown = hoveredId;
 		if (contentH > viewH) {
 			int bx = x + w - BAR_W - 2;
 			Panels.sprite(g, Kit.SCROLL_TRACK, bx, top, BAR_W, viewH);
@@ -534,6 +553,7 @@ public class PickerScreen extends Screen {
 		if (e == null) {
 			pick.hide();
 			fav.hide();
+			g.text(f, TextUtil.ellipsize(f, "Nothing to show", cw), cx, cy, UiStyle.mutedText(), false);
 			return;
 		}
 		int bigH = cards() ? Math.min(60, h / 3) : 30;
@@ -618,6 +638,7 @@ public class PickerScreen extends Screen {
 
 	@Override
 	public boolean keyPressed(KeyEvent e) {
+		keyLast = true;
 		if (e.isEscape()) {
 			back();
 			return true;
