@@ -37,9 +37,14 @@ public final class HudLayout {
 	public record Frame(int guiWidth, int guiHeight, boolean survivalBars) {
 	}
 
-	/** Bottoms of vanilla's pieces this frame (0 = not shown). */
-	public record Vanilla(int bossBottom, int effectsBottom, int toastsBottom, int nowPlayingBottom) {
-		public static final Vanilla NONE = new Vanilla(0, 0, 0, 0);
+	/** Bottoms of vanilla's pieces this frame (0 = not shown), and the "Now playing" toast's width (top left). */
+	public record Vanilla(int bossBottom, int effectsBottom, int toastsBottom, int nowPlayingBottom, int nowPlayingWidth) {
+		public static final Vanilla NONE = new Vanilla(0, 0, 0, 0, 0);
+
+		/** With "Now playing" at vanilla's default toast width (160) when shown. */
+		public Vanilla(int bossBottom, int effectsBottom, int toastsBottom, int nowPlayingBottom) {
+			this(bossBottom, effectsBottom, toastsBottom, nowPlayingBottom, nowPlayingBottom > 0 ? 160 : 0);
+		}
 	}
 
 	/** One registered element: its zone, priority (high = nearer the anchor, shrinks and hides last) and registration order. */
@@ -124,6 +129,14 @@ public final class HudLayout {
 			int top = v.bossBottom() > 0 ? v.bossBottom() + 3 : CENTER_TOP;
 			int limit = gh / 2 - 12;
 			List<Integer> live = measureAll(ids, m, Math.max(0, gw - 16), wants);
+			// below "Now playing" (top left) when the widest centre piece would reach it
+			int widest = 0;
+			for (int i : live) {
+				widest = Math.max(widest, wants.get(i).w());
+			}
+			if (v.nowPlayingBottom() > 0 && (gw - widest) / 2 < v.nowPlayingWidth() + GAP) {
+				top = Math.max(top, v.nowPlayingBottom() + GAP);
+			}
 			zones.put(HudZone.TOP_CENTER, new Rect(0, top, gw, Math.max(0, limit - top)));
 			place(HudZone.TOP_CENTER, live, elems, wants, top, true, limit - top, slots, hidden, overflow, (w) -> (gw - w) / 2);
 		}
@@ -180,8 +193,28 @@ public final class HudLayout {
 					}
 				}
 				wants.put(idx, w);
-				slots.add(new Slot(idx, LEFT_X, y, Math.min(w.w(), Math.max(0, room)), p.h(), p.collapsed()));
-				y += p.h() + GAP;
+				int sw = Math.min(w.w(), Math.max(0, room));
+				// never past the zone's end or into a piece placed below it (the bottom-centre panel on a short screen)
+				int end = limit;
+				for (Slot o : slots) {
+					if (o.y() >= y && o.rect().crossesX(LEFT_X, LEFT_X + sw)) {
+						end = Math.min(end, o.y() - GAP);
+					}
+				}
+				int h = Math.min(p.h(), end - y);
+				int minH = Math.min(p.h(), Math.max(0, w.minH()));
+				if (h < minH) {
+					if (w.optional()) {
+						hidden.add(idx);
+						continue;
+					}
+					h = minH;
+					if (!overflow.contains(HudZone.TOP_LEFT)) {
+						overflow.add(HudZone.TOP_LEFT);
+					}
+				}
+				slots.add(new Slot(idx, LEFT_X, y, sw, h, h < wants.get(idx).h()));
+				y += h + GAP;
 			}
 		}
 		// ---- TOP_RIGHT_TOASTS: the column, below vanilla's effects and toasts, above what the other zones placed in it
@@ -207,6 +240,12 @@ public final class HudLayout {
 			for (int[] a : toastAvoid) {
 				if (a != null && a.length >= 2) {
 					limit = Math.min(limit, a[1] - GAP);
+				}
+			}
+			// the column ends above the bottom-centre panel when it crosses it (as Toasts.avoid did), never below it
+			for (Slot s : slots) {
+				if (elems.get(s.index()).zone() == HudZone.BOTTOM_CENTER && s.rect().crossesX(columnX, gw - TOAST_MARGIN)) {
+					limit = Math.min(limit, s.y() - GAP);
 				}
 			}
 			List<Integer> live = measureAll(ids, m, TOAST_W, wants);

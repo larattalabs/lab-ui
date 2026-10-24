@@ -23,6 +23,7 @@ import net.minecraft.world.effect.MobEffectInstance;
 final class VanillaHud {
 	private static boolean toastsFailed;
 	private static boolean nowPlayingFailed;
+	private static final int[] NONE = {0, 0};
 	private static java.lang.reflect.@org.jspecify.annotations.Nullable Field nowPlayingField;
 	private static boolean bossFailed;
 
@@ -30,7 +31,8 @@ final class VanillaHud {
 	}
 
 	static HudLayout.Vanilla read(Minecraft mc, int guiHeight) {
-		return new HudLayout.Vanilla(boss(mc, guiHeight), effects(mc), toasts(mc), nowPlaying(mc));
+		int[] np = nowPlaying(mc);
+		return new HudLayout.Vanilla(boss(mc, guiHeight), effects(mc), toasts(mc), np[0], np[1]);
 	}
 
 	private static int boss(Minecraft mc, int guiHeight) {
@@ -88,9 +90,10 @@ final class VanillaHud {
 		}
 	}
 
-	private static int nowPlaying(Minecraft mc) {
+	/** {bottom, width} of the "Now playing" toast, or {0, 0}. */
+	private static int[] nowPlaying(Minecraft mc) {
 		if (nowPlayingFailed) {
-			return 0;
+			return NONE;
 		}
 		try {
 			if (nowPlayingField == null) {
@@ -101,18 +104,18 @@ final class VanillaHud {
 			Object inst = nowPlayingField.get(mc.gui.toastManager());
 			if (inst == null || !mc.options.musicToast().get().renderToast() || mc.gui.screen() instanceof PauseScreen) {
 				// (the pause screen draws it itself)
-				return 0;
+				return NONE;
 			}
 			ToastInstanceAccess t = (ToastInstanceAccess) inst;
 			if (t.labui$visiblePortion() <= 0f) {
-				return 0;
+				return NONE;
 			}
 			Toast toast = t.labui$toast();
-			return (int) Math.ceil(toast.yPos(0)) + toast.height();
+			return new int[] {(int) Math.ceil(toast.yPos(0)) + toast.height(), toast.width()};
 		} catch (ReflectiveOperationException | RuntimeException | LinkageError e) {
 			nowPlayingFailed = true;
-			LabUi.LOGGER.warn("lab_ui: can't read vanilla's Now playing toast; the top-left HUD zone ignores it", e);
-			return 0;
+			LabUi.LOGGER.warn("lab_ui: can't read vanilla's Now playing toast; the HUD zones ignore it", e);
+			return NONE;
 		}
 	}
 }

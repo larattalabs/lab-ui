@@ -81,17 +81,48 @@ class HudLayoutTest {
 		sc.add(HudZone.TOP_CENTER, 70, fixed(300, 28)); // region ghost HUD
 		sc.add(HudZone.TOP_CENTER, 60, maxW -> new Want(Math.min(360, maxW), 20, 14, false)); // construction HUD, full or one line
 		sc.add(HudZone.TOP_LEFT, 60, stewardLine(330)); // Steward's inbox line
-		sc.add(HudZone.TOP_LEFT, 40, maxW -> new Want(Math.min(320, maxW), 30, 20, false)); // helper strip, drops its npm line
+		// helper strip: drops its npm line, and is optional (its progress also shows in Architect's Status tab)
+		sc.add(HudZone.TOP_LEFT, 40, maxW -> new Want(Math.max(160, Math.min(320, maxW)), 30, 20, true));
 		sc.add(HudZone.TOP_RIGHT_TOASTS, 0, maxW -> new Want(196, toastsH, 0, true)); // the toast stack
 		return sc;
 	}
 
+	/** Vanilla states: nothing; two boss bars, both effect rows and a vanilla toast; "Now playing" and one bar. */
+	static Vanilla[] vanillas(int gh) {
+		return new Vanilla[] {Vanilla.NONE, new Vanilla(VanillaHudMath.bossBottom(2, gh), VanillaHudMath.effectsBottom(1, 1, false), 32, 0),
+			new Vanilla(VanillaHudMath.bossBottom(1, gh), 0, 0, 30)};
+	}
+
 	@Test
 	void bothModsAtOnceNeverOverlapOnAnyScreen() {
+		List<String> overflowed = new ArrayList<>();
 		for (int[] s : SCREENS) {
 			for (boolean bars : new boolean[] {true, false}) {
+				for (Vanilla v : vanillas(s[1])) {
+					for (int toastsH : new int[] {0, 60, 170}) {
+						Layout l = everything(toastsH).layout(new Frame(s[0], s[1], bars), v, List.of());
+						String at = s[0] + "x" + s[1] + " bars=" + bars + " " + v + " toasts=" + toastsH;
+						if (!l.overflow().isEmpty()) {
+							// a fixed piece with no room left is placed anyway and reported (never hidden silently): only on
+							// the smallest screen with every piece of both mods and vanilla's on at once
+							assertEquals(426, s[0], at + " overflows " + l.overflow());
+							overflowed.add(at);
+							continue;
+						}
+						try {
+							noOverlap(l);
+							if (v.bossBottom() > 0) {
+								noOverlap(l, new Rect(s[0] / 2 - 91, 3, 182, v.bossBottom() - 3));
+							}
+							if (v.nowPlayingBottom() > 0) {
+								noOverlap(l, new Rect(0, 0, 160, v.nowPlayingBottom()));
+							}
+						} catch (AssertionError e) {
+							throw new AssertionError(at + ": " + e.getMessage(), e);
+						}
+					}
+				}
 				Layout l = everything(170).layout(new Frame(s[0], s[1], bars), Vanilla.NONE, List.of());
-				noOverlap(l);
 				// the aimed panel is never moved for anything: centred, above the hotbar
 				Slot p = l.slot(0);
 				assertNotNull(p);
@@ -99,6 +130,8 @@ class HudLayoutTest {
 				assertTrue(p.y() >= s[1] / 2 + 8, "below the crosshair at " + s[0] + "x" + s[1]);
 			}
 		}
+		System.out.println("HudLayoutTest overflow cases (" + overflowed.size() + " of 72): " + overflowed);
+		assertTrue(overflowed.size() <= 6, "overflow is the exception: " + overflowed);
 	}
 
 	@Test
@@ -209,6 +242,26 @@ class HudLayoutTest {
 		noOverlap(l, bars);
 		Slot steward = l.slot(3);
 		assertTrue(steward.x() + steward.w() <= bars.x() - HudLayout.GAP, "steward " + steward);
+	}
+
+	@Test
+	void theTopLeftZoneNeverStepsIntoTheBottomPanel() {
+		// the demo's case: 480x270 survival, two raid bars, everything on (the helper stepped to 113..145, the panel at 143)
+		Scene sc = everything(60);
+		Layout l = sc.layout(new Frame(480, 270, true), new Vanilla(VanillaHudMath.bossBottom(2, 270), 51, 32, 0), List.of());
+		noOverlap(l);
+		Slot helper = l.slot(4);
+		Slot panel = l.slot(0);
+		assertTrue(helper == null || helper.y() + helper.h() <= panel.y() - HudLayout.GAP || helper.x() + helper.w() <= panel.x(), "helper " + helper);
+	}
+
+	@Test
+	void theToastColumnNeverGoesBelowTheBottomPanel() {
+		Scene sc = everything(300);
+		Layout l = sc.layout(new Frame(480, 270, true), Vanilla.NONE, List.of());
+		Slot toasts = l.slot(5);
+		Slot panel = l.slot(0);
+		assertTrue(toasts == null || toasts.y() + toasts.h() <= panel.y() - HudLayout.GAP, "toasts " + toasts + " panel " + panel);
 	}
 
 	@Test
