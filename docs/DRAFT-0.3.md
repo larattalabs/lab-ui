@@ -51,7 +51,7 @@ Non-text tokens (focus ring, bar) need at least 3:1.
 | `text` | #F4EFE6 | 12.65 | 9.30 | 10.58 | 9.46 | 13.78 | 12.56 | 11.92 | **9.30** | `text()` = CREAM (same) |
 | `muted` | #C4BDB2 | 7.78 | 5.71 | 6.50 | 5.82 | 8.47 | 7.72 | 7.33 | **5.71** | `soft()` = ink_ui.activity (same) |
 | `error` | #F2948B | 6.48 | 4.76 | 5.41 | 4.84 | 7.05 | 6.43 | 6.10 | **4.76** | `error()` #EA847B: **4.10** over white, fails |
-| `warn` | #F2B66A | 8.06 | 5.92 | 6.73 | 6.03 | 8.77 | 8.00 | 7.59 | **5.92** | `warn()` #F4A585 (5.36). Passes, but its hue is next to error's |
+| `warn` | #F4A585 | 7.29 | 5.36 | 6.10 | 5.45 | 7.94 | 7.24 | 6.87 | **5.36** | `warn()` (same) |
 | `ok` | #B8CBB3 | 8.44 | 6.20 | 7.06 | 6.31 | 9.19 | 8.38 | 7.95 | **6.20** | `ok()` (same) |
 | `accent` | #80D2CD | 8.29 | 6.09 | 6.93 | 6.20 | 9.03 | 8.23 | 7.81 | **6.09** | `note()` (same) |
 | `selected` | #E6C659 | 8.69 | 6.38 | 7.26 | 6.50 | 9.46 | 8.62 | 8.18 | **6.38** | `armed()` (same) |
@@ -70,12 +70,15 @@ Three more that HudInk needs. They are surfaces or marks, not text:
 `selected_fill` is `withAlpha(selected, 0x30)`, the fill PlacementHud's "on" chips already use. It is a method, not a JSON
 entry.
 
-**Two value changes, both for review** (the rest are today's HudInk values):
+**One value change, for review** (the rest are today's HudInk values):
 - **error #EA847B → #F2948B.** The old value drops to 4.10:1 when the panel is over snow or quartz (the panel is 90%
   opaque). The new one is a touch lighter, in the same hue.
-- **warn #F4A585 → #F2B66A (amber).** The old warn passes, but next to the new error the two are both salmon. Amber sits
-  between error (rose) and selected (yellow). The HUD's glyphs (✖ ▲ !) stay the second cue. If Architect wants zero visible
-  change in UI-2b's HUD, keep #F4A585 (min 5.36). Then error and warn differ by lightness only.
+- **warn stays #F4A585.** Error and warn are both salmon and differ mostly in lightness (6.48 against 7.29 on the panel).
+  The HUD's glyphs (✖ ▲ !) are the second cue.
+  - **The alternative is amber #F2B66A** (min 5.92). It moves warn away from error, but it lands about as close in hue to
+    `selected` #E6C659 (about 13 degrees) as warn is to error now (about 11). So the change doesn't buy much, and I'd keep
+    #F4A585.
+  - A real fix for colour-only distinctions belongs to the accessibility pack's "second cue" item.
 
 ### API
 
@@ -159,7 +162,14 @@ Read from the code, at GUI coordinates:
 
 ### Model
 
-**Retained registration, immediate drawing.** A mod registers an element once. Then every frame lab-ui's one HUD element
+**Retained registration, immediate drawing.**
+- **The alternative I rejected** is pure immediate mode, where each mod's own `HudElement` claims a slot while it draws, using
+  last frame's layout.
+- **Why it fails.** That lags a frame, so a toast appearing overlaps for a frame and a panel jumps when another one hides.
+  And the order of the claims would be the HUD element order, not the priority.
+- **What stays immediate.** Elements keep no state in lab-ui; each frame they say what they are and draw where they're told.
+
+How it works: A mod registers an element once. Then every frame lab-ui's one HUD element
 (`lab_ui:hud/zones`, installed by `HudZones.install()` or `Toasts.install()`) does three things:
 1. asks each element to *measure* itself (its size this frame, or null for hidden);
 2. lays out every zone with pure, unit-tested code;
@@ -288,9 +298,9 @@ I'll confirm each value in the demo screenshots (§4) before release.
 // ArchitectClient.onInitializeClient: these replace five HudElementRegistry.addLast calls
 Toasts.install();                                            // also installs HudZones
 HudZones.add(Architect.id("placement"), Zone.BOTTOM_CENTER, new PlacementHud()).priority(100).whileScreenOpen(true);
-HudZones.add(Architect.id("plot_marker"), Zone.BOTTOM_CENTER, new PlotHud()).priority(90);
-HudZones.add(Architect.id("massing_review"), Zone.BOTTOM_CENTER, new MassingReview.Hud()).priority(80);
-HudZones.add(Architect.id("region_ghost"), Zone.TOP_CENTER, new RegionGhost.Hud()).priority(70);
+HudZones.add(Architect.id("plot_marker"), Zone.BOTTOM_CENTER, new PlotHud()).priority(90).whileScreenOpen(true);
+HudZones.add(Architect.id("massing_review"), Zone.BOTTOM_CENTER, new MassingReview.Hud()).priority(80).whileScreenOpen(true);
+HudZones.add(Architect.id("region_ghost"), Zone.TOP_CENTER, new RegionGhost.Hud()).priority(70).whileScreenOpen(true);
 HudZones.add(Architect.id("construction"), Zone.TOP_CENTER, new SiteHud()).priority(60);
 HudZones.add(Architect.id("helper_progress"), Zone.TOP_LEFT, new HelperProgressHud()).priority(40);
 
@@ -333,20 +343,25 @@ public void draw(GuiGraphicsExtractor g, Font font, Frame f, Slot s) {
 | Mod | Piece | Today | Zone | Priority | Size | Screen open | Notes |
 |---|---|---|---|---|---|---|---|
 | Architect | PlacementHud | bottom centre, own crosshair floor | BOTTOM_CENTER | 100 | `shrinkTo(KEEP rows)` via HudFit | **shown** (as now) | anchors the zone. `Toasts.avoid` becomes redundant |
-| Architect | PlotHud | bottom centre | BOTTOM_CENTER | 90 | fixed (it already drops a hint row on narrow screens) | hidden | keeps its "no stale status under the placement panel" rule |
-| Architect | MassingReview HUD | bottom centre | BOTTOM_CENTER | 80 | `shrinkTo(head + hints)` | hidden | keeps "hidden while placing" |
-| Architect | RegionGhost HUD | top centre y 6 | TOP_CENTER | 70 | fixed, 2 lines | hidden | no longer under SiteHud or boss bars |
+| Architect | PlotHud | bottom centre | BOTTOM_CENTER | 90 | fixed (it already drops a hint row on narrow screens) | **shown** (as now) | keeps its "no stale status under the placement panel" rule |
+| Architect | MassingReview HUD | bottom centre | BOTTOM_CENTER | 80 | `shrinkTo(head + hints)` | **shown** (as now) | keeps "hidden while placing" |
+| Architect | RegionGhost HUD | top centre y 6 | TOP_CENTER | 70 | fixed, 2 lines | **shown** (as now) | no longer under SiteHud or boss bars |
 | Architect | SiteHud | top centre y 4 | TOP_CENTER | 60 | full, `shrinkTo(line)` | hidden | its J key and "one line while placing" UiPrefs rule stay |
 | Architect | HelperProgressHud | top left (4, 4) | TOP_LEFT | 40 | `shrinkTo(strip)` (drops the npm line) | hidden | below Steward's line, no overlap |
 | Architect | toasts | lab-ui `Toasts` | TOP_RIGHT_TOASTS | 0 | flexible, optional | hidden | below vanilla toasts and effects |
-| Steward | StewardHud inbox line | top left (6, 6), `60% - columnWidth` | TOP_LEFT | 60 | fixed 12 | hidden; F1 hides it | `maxW` is the known right edge |
+| Steward | StewardHud inbox line | top left (6, 6), `60% - columnWidth` | TOP_LEFT | 60 | fixed 12 | hidden | `maxW` is the known right edge |
 | Steward | toasts | own `steward:hud/toasts` | TOP_RIGHT_TOASTS (lab-ui `Toasts`) | 0 | as Architect's | hidden | one column with Architect's; `maxBodyLines` 3 |
 | Steward | board, plate, bubbles | in world | none | | | | colour tokens only |
 | lab-ui | `Toasts` | `lab_ui:hud/toasts` | TOP_RIGHT_TOASTS | 0 | | | drawn by `lab_ui:hud/zones` |
 
-**F1.** Steward already hides under F1. Architect's HUDs don't check it today. With the zone default (`whenHudHidden(false)`)
-they hide under F1 as well. That is a small visible change for Architect, and I think a correct one. Architect can opt out
-per element.
+**F1 and open screens: no visible change.**
+- **F1.** Fabric draws `HudElementRegistry.addLast` elements inside its wrap of `Hud.extractTabList`. Vanilla calls that
+  only when `!isHidden` (26.3 `Hud.extractRenderState`; fabric-rendering-v1 27.0.14 `HudMixin`). So every HUD piece here is
+  already hidden under F1, and Steward's own `isHidden()` check is redundant. The zone default `whenHudHidden(false)` keeps
+  that.
+- **Open screens.** The HUD is drawn under open screens. PlacementHud, PlotHud, MassingReview and the RegionGhost HUD don't
+  check `screen()`, so they show under screens today. They get `whileScreenOpen(true)`. SiteHud, HelperProgressHud, StewardHud
+  and the toasts hide today, and keep the default.
 
 ### Pure, unit-tested parts (`dev.larattalabs.labui.ui`)
 
@@ -369,8 +384,9 @@ I reproduced it in scratch clones, not in either repo:
 - **Architect compiles.** I built Architect main with `-Plab_ui.dir=` set to the same checkout.
 - **The cause.** `dependencyInsight` on `clientCompileClasspath` shows the difference. Steward requests
   `org.gradle.libraryelements=classes` and gets lab-ui's `classes` secondary variant, which is `main`'s classes directory only.
-  Architect requests `jar`, which holds main and client, like the published jar. The jar is only the right request for a
-  composite build: it can't be pinned from the lab-ui side, because Gradle prefers the classes variant inside a composite.
+  Architect requests `jar`, which holds main and client, like the published jar.
+- **Why only in a composite.** Gradle picks the classes variant for a project dependency. So either the consumer requests
+  the jar, or lab-ui changes what that variant carries (the optional hardening below).
 - **Architect's fix.** `architect-mc/mod/build.gradle` ~lines 36-45 (commit 413dab1c) forces the jar when a checkout is
   included. AgentCraft has the same block (`agentcraft/mod/build.gradle:62`). Steward's settings.gradle is fine:
   `includeBuild(labUiDir)` is the same call. Steward's build.gradle just doesn't have the attribute block.
@@ -422,9 +438,8 @@ hit this. It's a small `build.gradle` change on `ui-0.3`, but per your note I le
 
 ## Open questions for review
 
-1. Should error and warn change value (#F2948B, #F2B66A), or should warn stay #F4A585 for zero change in Architect's HUD?
+1. Error → #F2948B (needed for 4.5 over a white world). Warn: keep #F4A585 (recommended), or amber #F2B66A?
 2. Steward's plate name: `OnDark.selected` (6.50), or keep brass (4.48 over a white world)?
-3. Hiding Architect's HUDs under F1 by default: yes?
-4. `Toasts.push(…, maxBodyLines)` as an overload, or 3 lines for everyone?
-5. Mixin accessors (`required: false`, caught), or plain reflection? I recommend the mixins. They are checked against 26.3 at
+3. `Toasts.push(…, maxBodyLines)` as an overload, or 3 lines for everyone?
+4. Mixin accessors (`required: false`, caught), or plain reflection? I recommend the mixins. They are checked against 26.3 at
    build time, and a miss degrades to "no vanilla offset" instead of a crash.
