@@ -51,7 +51,7 @@ Non-text tokens (focus ring, bar) need at least 3:1.
 | `text` | #F4EFE6 | 12.65 | 9.30 | 10.58 | 9.46 | 13.78 | 12.56 | 11.92 | **9.30** | `text()` = CREAM (same) |
 | `muted` | #C4BDB2 | 7.78 | 5.71 | 6.50 | 5.82 | 8.47 | 7.72 | 7.33 | **5.71** | `soft()` = ink_ui.activity (same) |
 | `error` | #F2948B | 6.48 | 4.76 | 5.41 | 4.84 | 7.05 | 6.43 | 6.10 | **4.76** | `error()` #EA847B: **4.10** over white, fails |
-| `warn` | #F4A585 | 7.29 | 5.36 | 6.10 | 5.45 | 7.94 | 7.24 | 6.87 | **5.36** | `warn()` (same) |
+| `warn` | #F2B66A | 8.06 | 5.92 | 6.73 | 6.03 | 8.77 | 8.00 | 7.59 | **5.92** | `warn()` #F4A585 → amber (decided) |
 | `ok` | #B8CBB3 | 8.44 | 6.20 | 7.06 | 6.31 | 9.19 | 8.38 | 7.95 | **6.20** | `ok()` (same) |
 | `accent` | #80D2CD | 8.29 | 6.09 | 6.93 | 6.20 | 9.03 | 8.23 | 7.81 | **6.09** | `note()` (same) |
 | `selected` | #E6C659 | 8.69 | 6.38 | 7.26 | 6.50 | 9.46 | 8.62 | 8.18 | **6.38** | `armed()` (same) |
@@ -70,15 +70,12 @@ Three more that HudInk needs. They are surfaces or marks, not text:
 `selected_fill` is `withAlpha(selected, 0x30)`, the fill PlacementHud's "on" chips already use. It is a method, not a JSON
 entry.
 
-**One value change, for review** (the rest are today's HudInk values):
+**Two value changes (decided by the coordinator, 2026-10-24):**
 - **error #EA847B → #F2948B.** The old value drops to 4.10:1 when the panel is over snow or quartz (the panel is 90%
   opaque). The new one is a touch lighter, in the same hue.
-- **warn stays #F4A585.** Error and warn are both salmon and differ mostly in lightness (6.48 against 7.29 on the panel).
-  The HUD's glyphs (✖ ▲ !) are the second cue.
-  - **The alternative is amber #F2B66A** (min 5.92). It moves warn away from error, but it lands about as close in hue to
-    `selected` #E6C659 (about 13 degrees) as warn is to error now (about 11). So the change doesn't buy much, and I'd keep
-    #F4A585.
-  - A real fix for colour-only distinctions belongs to the accessibility pack's "second cue" item.
+- **warn #F4A585 → amber #F2B66A**, so warn and error differ in hue, not only in lightness. It passes on every surface, with
+  a minimum of 5.92:1 (the HUD panel over a white world), so no nearer amber is needed. The HUD's glyphs (✖ ▲ !) stay the
+  second cue.
 
 ### API
 
@@ -127,7 +124,7 @@ HudInk after 0.3, in Architect's own slice: `text→OnDark.text`, `soft→muted`
 | | `0xFFF07060` status error | 3.65, **fails** | `error` |
 | | `activityOnInk` | 5.71 | `muted` |
 | Architect PlacementHud, PlotHud, SiteHud, HelperProgressHud, ProgressStrip | `HudInk.*` | see above | aliases |
-| Steward StewardPlate | name in `UiStyle.BRASS` | 6.88 on the opaque plate, **4.48** over white | `selected` (6.50), or keep brass and accept 4.48 |
+| Steward StewardPlate | name in `UiStyle.BRASS` | 6.88 on the opaque plate, **4.48** over white | **`selected` (6.50), decided; Steward's own slice** |
 | | activity in `ink_ui.activity` | 5.82 | `muted` |
 | | the "!" (clay with an ink outline, a mark) | fine | unchanged |
 | Steward BoardRenderer | slate `WALNUT`, band `CREAM`, title `INK` on the band (14.5) | | unchanged surfaces |
@@ -288,7 +285,7 @@ I'll confirm each value in the demo screenshots (§4) before release.
   and AgentCraft (which still has its own toasts).
 - `push`, `lastText()`, `shown()` and `json()` are unchanged.
 - **For Steward's toasts.** The column is already identical: 196 wide, a 6 px margin, sliding in from the right, hidden under
-  screens. The one difference is that Steward allows **3** body lines and lab-ui allows 2. The proposal is an additive overload,
+  screens. The one difference is that Steward allows **3** body lines and lab-ui allows 2. Decided: an additive overload,
   `Toasts.push(level, title, body, hintKey, hintVerb, maxBodyLines)` (1-3; the existing overloads keep 2). That's
   behaviour-neutral for Architect, and Steward passes 3.
 
@@ -410,9 +407,15 @@ if (gradle.ext.has("labUiDir")) {
 }
 ```
 
-**An optional lab-ui-side hardening (not done; your call).** lab-ui's `apiElements` could carry the client classes directory in
-its `classes` variant (or drop that secondary variant). Then no consumer would need the block, and a fourth consumer couldn't
-hit this. It's a small `build.gradle` change on `ui-0.3`, but per your note I left lab-ui's build alone.
+**The lab-ui-side hardening (decided: do it on `ui-0.3`).**
+- **What changes.** lab-ui's `apiElements` and `runtimeElements` `classes` secondary variant also carries the client
+  source set's classes directory, and the `resources` variant carries the client resources. Then a composite consumer
+  that requests `classes`, like Steward without the block, still resolves `dev.larattalabs.labui.client.*`.
+- **Architect's block keeps working:** it requests the jar variant, which is unchanged. AgentCraft's block also keeps working.
+- **How it's verified:** the scratch Steward clone with no jar-forcing block, and the scratch Architect build with its block,
+  both run `compileClientJava` against `../lab-ui-0.3`.
+- **Steward's block** (above) is then optional. It's still worth adding, so that Steward builds against the v0.2.0 checkout,
+  which predates the hardening.
 
 ## 4. Build plan after approval
 
@@ -423,6 +426,7 @@ hit this. It's a small `build.gradle` change on `ui-0.3`, but per your note I le
    - the pure `Contrast`, `ZoneStack`, `HudGeometry` and `VanillaHudMath` with tests;
    - `HudZones` and `VanillaHud`, and the accessor mixin config;
    - `Toasts` on zones, with the `maxBodyLines` overload;
+   - the composite hardening in `build.gradle` (§3);
    - README "What changed in 0.3.0", CHANGELOG, and the CI jar-content check for the mixin json.
 2. **Screenshots.**
    - **Setup.** A throwaway Architect worktree under scratch, built with `LAB_UI_DIR=../lab-ui-0.3`, never committed to Architect.
@@ -436,10 +440,12 @@ hit this. It's a small `build.gradle` change on `ui-0.3`, but per your note I le
 3. Not on this branch: Architect's and Steward's adoption (HudInk aliases, the zone registrations, the `depends` range).
    Those are their own slices against 0.3.0.
 
-## Open questions for review
+## Decisions (coordinator, 2026-10-24)
 
-1. Error → #F2948B (needed for 4.5 over a white world). Warn: keep #F4A585 (recommended), or amber #F2B66A?
-2. Steward's plate name: `OnDark.selected` (6.50), or keep brass (4.48 over a white world)?
-3. `Toasts.push(…, maxBodyLines)` as an overload, or 3 lines for everyone?
-4. Mixin accessors (`required: false`, caught), or plain reflection? I recommend the mixins. They are checked against 26.3 at
-   build time, and a miss degrades to "no vanilla offset" instead of a crash.
+1. error #F2948B; warn amber #F2B66A (minimum 5.92:1, passes on every surface).
+2. Steward's plate name goes to `OnDark.selected`, in Steward's own slice.
+3. The additive `Toasts.push(…, maxBodyLines)` overload.
+4. Mixin accessors, non-required, with a fallback (no vanilla offset, logged once).
+5. The lab-ui-side composite hardening, keeping Architect's jar-forcing block working.
+
+Waiting for Steward's review and the coordinator's go before building.
