@@ -71,8 +71,9 @@ public class PickerScreen extends Screen {
 	private List<String> recentIds = List.of();
 	private Focus focus = Focus.SEARCH;
 	private @Nullable String hoveredId;
-	/** The cell under the mouse fills the detail pane only once the mouse has moved onto it since the last key. */
-	private @Nullable String hoverShown;
+	/** The cell under the mouse fills the detail pane only after the mouse moves (not when the grid moves under it) since the last key. */
+	private int lastMx = Integer.MIN_VALUE;
+	private int lastMy = Integer.MIN_VALUE;
 	private boolean keyLast = true;
 	private boolean revealPending = true;
 	private int gridScroll;
@@ -482,13 +483,15 @@ public class PickerScreen extends Screen {
 		if (revealPending) {
 			// the first frame: a mouse resting where the screen opened does not count as a hover
 			revealPending = false;
-			hoverShown = hoveredId;
+			lastMx = mx;
+			lastMy = my;
 			revealSelection();
 		}
-		if (hoveredId != null && !hoveredId.equals(hoverShown)) {
-			keyLast = false;
+		if (mx != lastMx || my != lastMy) {
+			keyLast = hoveredId == null && keyLast;
+			lastMx = mx;
+			lastMy = my;
 		}
-		hoverShown = hoveredId;
 		if (contentH > viewH) {
 			int bx = x + w - BAR_W - 2;
 			Panels.sprite(g, Kit.SCROLL_TRACK, bx, top, BAR_W, viewH);
