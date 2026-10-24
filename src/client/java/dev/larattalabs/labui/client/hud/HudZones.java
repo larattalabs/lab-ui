@@ -72,8 +72,9 @@ public final class HudZones {
 	/** A HUD piece in a zone. */
 	public interface Element {
 		/**
-		 * The size this frame, or null when not shown. {@code maxW}: the room at this element's place (ellipsize to it).
-		 * May be called twice in a frame (TOP_LEFT re-measures with a narrower room).
+		 * The size this frame, or null when not shown. {@code maxW}: the room at this element's place (ellipsize to it). In
+		 * {@link HudZone#TOP_LEFT}, answering wider than {@code maxW} means "I can't be that narrow": the element moves down
+		 * below the top-centre slots beside it and is measured again. May be called up to a few times a frame.
 		 */
 		@Nullable Size measure(Font font, Frame f, int maxW);
 

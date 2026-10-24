@@ -10,17 +10,20 @@ import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.toasts.Toast;
+import net.minecraft.client.gui.components.toasts.ToastManager;
 import net.minecraft.client.gui.screens.PauseScreen;
 import net.minecraft.world.effect.MobEffectInstance;
 
 /**
  * Reads where vanilla draws its own top-of-screen pieces this frame, for {@link HudZones} (0.3.0): boss bars, effect icons,
  * toasts (top right) and the "Now playing" toast (top left). Toasts and boss bars have no public accessor in 26.3, so
- * lab-ui's accessor mixins ({@code lab_ui.client.mixins.json}, not required) read them; when a read fails (a renamed field
+ * lab-ui's accessor mixins ({@code lab_ui.client.mixins.json}, not required; the Now playing field by reflection) read them; when a read fails (a renamed field
  * in a later Minecraft) that piece counts as absent, logged once, and the zones start where they did in 0.2.
  */
 final class VanillaHud {
 	private static boolean toastsFailed;
+	private static boolean nowPlayingFailed;
+	private static java.lang.reflect.@org.jspecify.annotations.Nullable Field nowPlayingField;
 	private static boolean bossFailed;
 
 	private VanillaHud() {
@@ -86,13 +89,17 @@ final class VanillaHud {
 	}
 
 	private static int nowPlaying(Minecraft mc) {
-		if (toastsFailed) {
+		if (nowPlayingFailed) {
 			return 0;
 		}
 		try {
-			Object inst = ((ToastManagerAccess) mc.gui.toastManager()).labui$nowPlayingToast();
-			if (inst == null || !mc.options.musicToast().get().renderToast()
-				|| mc.gui.screen() instanceof PauseScreen) {
+			if (nowPlayingField == null) {
+				java.lang.reflect.Field f = ToastManager.class.getDeclaredField("nowPlayingToast");
+				f.setAccessible(true);
+				nowPlayingField = f;
+			}
+			Object inst = nowPlayingField.get(mc.gui.toastManager());
+			if (inst == null || !mc.options.musicToast().get().renderToast() || mc.gui.screen() instanceof PauseScreen) {
 				// (the pause screen draws it itself)
 				return 0;
 			}
@@ -102,9 +109,9 @@ final class VanillaHud {
 			}
 			Toast toast = t.labui$toast();
 			return (int) Math.ceil(toast.yPos(0)) + toast.height();
-		} catch (RuntimeException | LinkageError e) {
-			toastsFailed = true;
-			LabUi.LOGGER.warn("lab_ui: can't read vanilla's toasts; the HUD zones ignore them", e);
+		} catch (ReflectiveOperationException | RuntimeException | LinkageError e) {
+			nowPlayingFailed = true;
+			LabUi.LOGGER.warn("lab_ui: can't read vanilla's Now playing toast; the top-left HUD zone ignores it", e);
 			return 0;
 		}
 	}

@@ -1,5 +1,15 @@
 # lab-ui 0.3 draft: on-dark tokens and shared HUD zones
 
+> **As built (2026-10-24):** approved by Steward and the coordinator, built on `ui-0.3`. README.md "HUD zones and on-dark
+> tokens (0.3.0)" is the reference now; its "Differences from DRAFT-0.3" lists where the build departs from this draft:
+> - `HudZone` is a common enum, not `HudZones.Zone`;
+> - `Size.hideable`;
+> - no `whenHudHidden`;
+> - `Toasts.Spec`, not a positional overload;
+> - "Now playing" is read by reflection;
+> - boss bars are an obstacle for TOP_LEFT and the toast column;
+> - the toast column takes the first free run between obstacles.
+
 Status: draft for review (Steward, coordinator). Nothing here is built yet. Branch `ui-0.3`, worktree `../lab-ui-0.3` (the
 `../lab-ui` checkout stays on main at `v0.2.0`, so Architect's and Steward's tag-matching composite rule still picks it up).
 

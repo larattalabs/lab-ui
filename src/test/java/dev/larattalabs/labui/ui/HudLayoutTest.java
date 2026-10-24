@@ -170,6 +170,21 @@ class HudLayoutTest {
 	}
 
 	@Test
+	void theColumnTakesTheFirstFreeRunThatHoldsTheStackElseTheTallest() {
+		List<Rect> obs = List.of(new Rect(0, 39, 100, 28), new Rect(0, 71, 100, 22), new Rect(0, 143, 100, 80));
+		// 36..35 and 71..67 are empty, 97..139 is 42 tall, nothing below the panel (limit 220)
+		assertEquals(List.of(97, 139), List.of(HudLayout.freeRun(36, 220, obs, 128)[0], HudLayout.freeRun(36, 220, obs, 128)[1]));
+		assertEquals(97, HudLayout.freeRun(36, 220, obs, 30)[0]);
+		// room above the first obstacle when the stack fits there
+		assertEquals(8, HudLayout.freeRun(8, 220, List.of(new Rect(0, 100, 10, 10)), 60)[0]);
+		assertEquals(114, HudLayout.freeRun(8, 220, List.of(new Rect(0, 100, 10, 10)), 100)[0]);
+		// no obstacles: the whole span
+		int[] r = HudLayout.freeRun(8, 490, List.of(), 1000);
+		assertEquals(8, r[0]);
+		assertEquals(490, r[1]);
+	}
+
+	@Test
 	void toastsAvoidKeepsItsZeroTwoMeaning() {
 		Scene sc = new Scene();
 		int t = sc.add(HudZone.TOP_RIGHT_TOASTS, 0, maxW -> new Want(196, 300, 0, true));
@@ -181,6 +196,19 @@ class HudLayoutTest {
 		l = sc.layout(new Frame(960, 540, true), Vanilla.NONE, List.of());
 		assertEquals(540 - 50, l.zones().get(HudZone.TOP_RIGHT_TOASTS).bottom());
 		assertEquals(8 + 300, l.slot(t).y() + l.slot(t).h());
+	}
+
+	@Test
+	void bossBarsAreAnObstacleBesideTheTopCentre() {
+		// 480x270 (GUI 4) with two raid bars: the Steward line ends before the bars, the toast column starts below them
+		Scene sc = everything(60);
+		Vanilla v = new Vanilla(VanillaHudMath.bossBottom(2, 270), 0, 0, 0);
+		Layout l = sc.layout(new Frame(480, 270, false), v, List.of());
+		noOverlap(l);
+		Rect bars = new Rect(240 - 91, 3, 182, 36 - 3);
+		noOverlap(l, bars);
+		Slot steward = l.slot(3);
+		assertTrue(steward.x() + steward.w() <= bars.x() - HudLayout.GAP, "steward " + steward);
 	}
 
 	@Test

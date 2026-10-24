@@ -24,7 +24,7 @@ Lab UI is the shared client UI library of the Laratta Labs Minecraft mods (Agent
 
 ### Use it in your mod
 
-The jar is published to GitHub Packages at `https://maven.pkg.github.com/larattalabs/lab-ui`, as `dev.larattalabs:lab_ui:<version>` (latest: `0.2.0`, which adds the [components](#components-020)).
+The jar is published to GitHub Packages at `https://maven.pkg.github.com/larattalabs/lab-ui`, as `dev.larattalabs:lab_ui:<version>` (latest: `0.3.0`, which adds [on-dark colour tokens and shared HUD zones](#hud-zones-and-on-dark-tokens-030); `0.2.0` added the [components](#components-020)).
 
 **1. Get a token.** GitHub Packages' Maven registry needs one **even for public packages**: a token with the `read:packages` scope (a classic personal access token, or your GitHub CLI login). With the GitHub CLI:
 
@@ -35,7 +35,7 @@ export GITHUB_ACTOR=$(gh api user --jq .login) GITHUB_TOKEN=$(gh auth token)
 
 Or put them in `~/.gradle/gradle.properties` as `gpr.user` / `gpr.key`.
 
-**2. Add the repository and the dependency** to your `build.gradle` (Loom 1.18 with the non-remapping `net.fabricmc.fabric-loom` plugin, the same setup as the three mods), and set `lab_ui_version=0.2.0` in `gradle.properties`:
+**2. Add the repository and the dependency** to your `build.gradle` (Loom 1.18 with the non-remapping `net.fabricmc.fabric-loom` plugin, the same setup as the three mods), and set `lab_ui_version=0.3.0` in `gradle.properties`:
 
 ```groovy
 repositories {
@@ -65,7 +65,7 @@ With `splitEnvironmentSourceSets()`, `implementation` covers both `main` and `cl
 **3. Declare the range** in your `fabric.mod.json`. Then a clash between two mods that bundle different lab-ui versions becomes a clear loader error, not a `NoSuchMethodError`:
 
 ```json
-"depends": { "lab_ui": ">=0.2.0 <0.3.0" }
+"depends": { "lab_ui": ">=0.3.0 <0.4.0" }
 ```
 
 **CI in a consumer repo.** Steward's CI already resolves `dev.larattalabs:architect_mc` from GitHub Packages this way: give the workflow `permissions: packages: read`, and set the env `GITHUB_ACTOR: ${{ github.actor }}` and `GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}` for the Gradle step. If a consumer run still gets 401/403 on `lab_ui`, there are two fixes. Either grant that repo access in the package settings (github.com/larattalabs/lab-ui/packages, then "Package settings", then "Manage Actions access"), or use a PAT secret with `read:packages` instead.
@@ -96,8 +96,13 @@ The first build downloads Minecraft and Fabric, which takes a few minutes. To te
 - **World-space UI.** Billboards, nine-sliced plates, text lift, speech bubbles and face displays (`WorldUi`, `SpeechBubble`, `DisplayDraw`, `ScreenStyle`).
 - **Crash guard.** HUD and tick handlers whose failures are logged once and swallowed, so they never crash the game (`Guard`, `GuardedHud`).
 - **Components (0.2.0).** Buttons, chips, lists, pickers, sections, tooltips, confirms, a chat pager, the text field and toasts (see [Components](#components-020)).
+- **HUD zones and on-dark tokens (0.3.0).** Named HUD zones that every mod registers into, so HUD pieces of different mods
+  never overlap each other or vanilla's boss bars, effects and toasts; and colour tokens for text on dark HUD panels and
+  in-world plates (see [HUD zones and on-dark tokens](#hud-zones-and-on-dark-tokens-030)).
 
-It has no entrypoint, so nothing runs until a consumer calls it. Consumers bundle it jar-in-jar. The pure classes (`dev.larattalabs.labui.ui.*`) have unit tests; the client classes are exercised by the consuming mods.
+It has no entrypoint, so nothing runs until a consumer calls it. Since 0.3.0 it has one client mixin config,
+`lab_ui.client.mixins.json`: three read-only accessors (vanilla's toasts and boss bars, for the HUD zones), not required, so a
+miss in a later Minecraft only loses the vanilla offset. Consumers bundle it jar-in-jar. The pure classes (`dev.larattalabs.labui.ui.*`) have unit tests; the client classes are exercised by the consuming mods.
 
 ### One copy at runtime
 
@@ -123,16 +128,18 @@ Only code that builds `<yourmod>:kit/...` ids by hand changes, along with any re
 ```
 src/main/java/dev/larattalabs/labui/        LabUi (ids, logger) and ui/: the pure, unit-tested classes (TextDepth, LeaderGaps, Guard,
                                             UiRules, ToastStack, ListNav, ScrollMath, TextMatch, ChipFlow, ConfirmArm, TooltipMath,
-                                            PickerMemory, SectionGrid, PickerModel, PageSlice, ChatPager)
+                                            PickerMemory, SectionGrid, PickerModel, PageSlice, ChatPager; 0.3.0: HudZone, HudLayout,
+                                            ZoneStack, VanillaHudMath, Contrast)
 src/client/java/dev/larattalabs/labui/client/
   ui/                                       Kit, Panels, UiStyle, TextUtil, WorldUi, GuardedHud
-  hud/                                      UiBits, Toasts
+  hud/                                      UiBits, Toasts, HudZones, VanillaHud
   text/                                     TextModel, TextFieldView, TextKeys
   widget/                                   Control, Button, Chip, ChipRow, ScrollList, CollapsibleSection, Tooltip, EmptyState,
                                             Confirm, NavKeys, Paint
   picker/                                   PickerEntry, PickerSpec, PickerStore, CompactPicker, PickerScreen
   monitor/                                  DisplayDraw, ScreenStyle
   world/                                    SpeechBubble
+src/client/java/dev/larattalabs/labui/mixin/client/   accessors for VanillaHud (lab_ui.client.mixins.json, not required)
 src/main/resources/assets/lab_ui/           kit sprites, gui/kit.json, gui/ui-style.json, palette.json
 src/test/java/                              JUnit tests for the pure classes
 .github/workflows/                          ci.yml (build, test, jar contents), publish.yml (release tags)
@@ -164,6 +171,96 @@ belongs to the screen: set `focused(true)` on the control that Enter / Space sho
 | `ChatPager` (common) | `ChatPager.of(lines).pageSize(8).page(p).filter(f).pageCommand(n -> cmd).filterCommand(prefix).build()`: the page plus "…and K more · page 2/5 [‹ prev] [next ›] [filter…]" |
 | `TextModel`, `TextFieldView`, `TextKeys` | the kit text field (moved from Architect and Steward, unchanged) |
 | `Toasts` | `Toasts.install()` once per mod (one shared stack), `Toasts.push(level, title, body[, key, verb])`, `Toasts.avoid(rectSupplier)` |
+
+## HUD zones and on-dark tokens (0.3.0)
+
+### On-dark tokens
+
+The `semantic.*` tokens are for text on paper and come out about 2:1 on a dark HUD panel. `UiStyle.OnDark` is the set for
+dark surfaces: the HUD ink panel (`Kit.TOOLTIP`), nameplates, dark monitors (`ScreenStyle.dark`) and a walnut slate. Every
+text token is at least 4.5:1 on each of them as drawn, also with the 90%-opaque HUD panel over a white world or the sky;
+`OnDarkContrastTest` recomputes this from `ui-style.json` (`semantic_on_dark`, `semantic_on_dark_contrast`).
+
+| `UiStyle.OnDark.` | Colour | Worst case | Use |
+|---|---|---|---|
+| `text()` | #F4EFE6 | 9.30 | body text |
+| `muted()` | #C4BDB2 | 5.71 | secondary text, key hints (`UiBits.hints(onDark)`) |
+| `error()` | #F2948B | 4.76 | refusals, errors |
+| `warn()` | #F2B66A | 5.92 | cautions (amber: a different hue from error) |
+| `ok()` | #B8CBB3 | 6.20 | ready, done |
+| `accent()` | #80D2CD | 6.09 | notes, links |
+| `selected()`, `selectedFill()` | #E6C659, that at alpha 0x30 | 6.38 | a selected or armed choice |
+| `focus()` | #C9A227 | 4.40 (a mark, needs 3) | the focus ring |
+| `bar()`, `track()` | #2FA3A0, `muted` at 0x60 | 3.48 (a mark) | progress |
+| `panel()`, `panelEdge()`, `rule()` | #2B2927, #4A4642, #4A423B | surfaces | the panel, its rim, chip edges and hairlines |
+
+Architect's `HudInk` maps onto these: `text`, `soft`→`muted`, `error`, `warn`, `ok`, `note`→`accent`, `armed`→`selected`,
+`bar`, `track`, `chipEdge`→`rule` (error and warn change value; the rest are HudInk's colours).
+
+### HUD zones
+
+A mod registers a HUD piece once into a zone; every frame lab-ui's one HUD element (`lab_ui:hud/zones`) asks each piece
+its size, lays the zones out (pure `HudLayout`, unit-tested) and calls each piece's `draw` with its rect. Immediate-mode
+like the rest of the kit: the pieces keep no state in lab-ui, they say what they are and draw where they are told.
+
+```java
+HudZones.add(MyMod.id("status"), HudZone.TOP_LEFT, new HudZones.Element() {
+	String text;
+	public HudZones.Size measure(Font font, HudZones.Frame f, int maxW) {      // null = not shown this frame
+		text = TextUtil.ellipsize(font, status(), maxW - 12);
+		return HudZones.Size.of(font.width(text) + 12, 12);
+	}
+	public void draw(GuiGraphicsExtractor g, Font font, HudZones.Frame f, HudZones.Slot s) {
+		UiBits.dotPill(g, font, "thinking", text, s.x(), s.y(), UiBits.ink());
+	}
+}).priority(60);
+```
+
+| Zone | Where | Anchor |
+|---|---|---|
+| `BOTTOM_CENTER` | centred, stacking up from 64 px above the bottom; never over the crosshair (on a short screen the floor drops to just above the hotbar) | laid out first: aimed panels never move for anything |
+| `TOP_CENTER` | centred, stacking down below vanilla's boss bars, to the crosshair | |
+| `TOP_LEFT` | x 6, stacking down below vanilla's "Now playing" toast; each piece's `maxW` ends at the toast column or the top-centre pieces and boss bars beside it | answering wider than `maxW` moves the piece below them |
+| `TOP_RIGHT_TOASTS` | the toast column (196 wide, 6 from the right), below vanilla's toasts and effect icons, in the first free run between the pieces other zones placed in it | `Toasts` is its priority-0 element |
+| `LEFT`, `RIGHT` | the edges, centred on the middle | nothing uses them yet |
+
+- **Priority** (default 50): higher sits nearer the zone's anchor edge and shrinks or hides last.
+- **Size**: `Size.of(w, h)` is fixed (placed even when it overflows, never hidden silently); `.shrinkTo(minH)` may get any
+  height down to `minH` (`slot.collapsed()` = draw the short form); `.optional()` may be hidden when even `minH` does not fit.
+- **F1 and screens**: Fabric draws HUD elements only while the HUD is shown, so zone pieces hide with F1. Under an open
+  screen a piece is hidden unless `.whileScreenOpen(true)`. `HudZones.hudHidden()` and `screenOpen()` answer anywhere.
+- **Crash guard**: each `measure` and `draw` runs in `Guard` under the piece's id.
+- **QA**: `HudZones.json()` (each zone's bounds, slots by id, hidden pieces, overflow and vanilla's pieces) and `rect(id)`.
+- **Vanilla's pieces** (`VanillaHud`): boss bars (12 + 19 per bar, to a third of the screen), effect icons (beneficial row at
+  y 1, the others 26 lower), toasts (`ToastManager`'s visible instances) and "Now playing" (top left, 30 tall). Toasts and
+  boss bars have no public accessor in 26.3, so the accessor mixins read them; "Now playing" is read by reflection (its
+  field's type is package-private). A failed read is logged once and that piece counts as absent.
+
+### What changed in 0.3.0
+
+Additive: every 0.2.0 class and method is unchanged. Seams:
+
+- **`Toasts.install()`** now installs `HudZones` and adds the stack as `lab_ui:toasts` in `TOP_RIGHT_TOASTS` (priority 0),
+  drawn by `lab_ui:hud/zones`; the 0.2 element `lab_ui:hud/toasts` is no longer registered, and the toasts' `Guard` kind is
+  `lab_ui:toasts` (was `lab_ui.hud.toasts`). The stack starts below vanilla's toasts and effect icons (it started at y 8
+  over them) and ends above whatever other zones place in its column. `Toasts.avoid(rect)` keeps its meaning (the stack
+  ends 4 px above the highest such rect) and also feeds `HudZones.avoid(TOP_RIGHT_TOASTS, rect)`. A `new Toasts()` that a
+  mod registers by hand still draws the 0.2 stack at the fixed top right.
+- **`Toasts.Spec` and `push(Spec)`**: `Spec.of(level, title, body).hint(key, verb).bodyLines(1-3).subject(prefix)`. The
+  subject (a prefix of the title, e.g. a settlement's name) is shortened first: "Stilt Swamp Fishing… needs you", not
+  "Stilt Swamp Fishing Village nee…" (`ToastStack.fitTitle`, from Steward's toasts; it falls back to the plain ellipsis
+  when the rest would leave the subject under 30 px). The existing `push` overloads keep two body lines and no subject.
+- **Re-routed through tokens, same colours**: `SpeechBubble`'s @name colour (`UiStyle.link()`), `UiBits.focusRing`
+  (`UiStyle.focusRing()`), `UiBits.hints(onDark)` (`OnDark.muted()`), the toasts' WARN title (`UiStyle.error()`).
+  `WorldUi`, `DisplayDraw` and `ScreenStyle` had no raw colours to route.
+- **Composite builds**: lab-ui's `classes` (and runtime `resources`) variants now carry the client source set too. A
+  consumer that `includeBuild()`s a lab-ui checkout and compiles against that variant (Gradle's choice for a project
+  dependency) resolves `dev.larattalabs.labui.client.*` without forcing the jar. Consumers that force the jar (Architect,
+  AgentCraft) are unaffected.
+- **Differences from DRAFT-0.3** (docs/DRAFT-0.3.md): the zone enum is `dev.larattalabs.labui.ui.HudZone` (common code, so
+  the pure layout can use it) rather than `HudZones.Zone`; `Size`'s flag is `hideable` (its builder stays `optional()`);
+  there is no `whenHudHidden` (Fabric never draws HUD elements under F1); `Toasts.Spec` replaces the positional
+  `maxBodyLines` overload (Steward's review).
 
 ## Migrating from AgentCraft Worlds, Architect or Steward
 

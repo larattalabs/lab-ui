@@ -128,6 +128,12 @@ public final class HudLayout {
 			place(HudZone.TOP_CENTER, live, elems, wants, top, true, limit - top, slots, hidden, overflow, (w) -> (gw - w) / 2);
 		}
 		List<Rect> centre = rectsOf(slots, elems, HudZone.TOP_CENTER);
+		// vanilla's boss bars (182 wide, centred, names from y 3) count as top-centre pieces for the zones beside them
+		Rect boss = v.bossBottom() > 0 ? new Rect(gw / 2 - VanillaHudMath.BOSS_BAR_W / 2, VanillaHudMath.BOSS_TOP - 9, VanillaHudMath.BOSS_BAR_W,
+			v.bossBottom() - (VanillaHudMath.BOSS_TOP - 9)) : null;
+		if (boss != null) {
+			centre.add(boss);
+		}
 		int columnX = gw - TOAST_MARGIN - TOAST_W;
 		// ---- TOP_LEFT: down from the corner (below "Now playing"); each element ends at the toast column or a centre slot
 		{
@@ -195,13 +201,8 @@ public final class HudLayout {
 					obstacles.add(s.rect());
 				}
 			}
-			obstacles.sort(Comparator.comparingInt(Rect::y));
-			for (Rect o : obstacles) {
-				if (o.y() <= top) {
-					top = Math.max(top, o.bottom() + GAP);
-				} else {
-					limit = Math.min(limit, o.y() - GAP);
-				}
+			if (boss != null && boss.crossesX(columnX, gw - TOAST_MARGIN)) {
+				obstacles.add(boss);
 			}
 			for (int[] a : toastAvoid) {
 				if (a != null && a.length >= 2) {
@@ -209,6 +210,10 @@ public final class HudLayout {
 				}
 			}
 			List<Integer> live = measureAll(ids, m, TOAST_W, wants);
+			// the free runs of the column between the obstacles: the first that holds the whole stack, else the tallest
+			int[] run = freeRun(top, limit, obstacles, totalWanted(live, wants));
+			top = run[0];
+			limit = run[1];
 			zones.put(HudZone.TOP_RIGHT_TOASTS, new Rect(columnX, top, TOAST_W, Math.max(0, limit - top)));
 			place(HudZone.TOP_RIGHT_TOASTS, live, elems, wants, top, true, limit - top, slots, hidden, overflow, (w) -> gw - TOAST_MARGIN - w);
 		}
@@ -236,6 +241,40 @@ public final class HudLayout {
 			place(z, live, elems, wants, start, true, limit - start, slots, hidden, overflow, left ? (w) -> LEFT_X : (w) -> gw - TOAST_MARGIN - w);
 		}
 		return new Layout(List.copyOf(slots), List.copyOf(hidden), zones, List.copyOf(overflow));
+	}
+
+	/**
+	 * The free runs of {@code [top, limit)} once {@code obstacles} (each with a {@link #GAP} around it) are taken out: the
+	 * first run at least {@code want} tall, else the tallest (the first of equals). Returns {top, limit}.
+	 */
+	static int[] freeRun(int top, int limit, List<Rect> obstacles, int want) {
+		List<Rect> obs = new ArrayList<>(obstacles);
+		obs.sort(Comparator.comparingInt(Rect::y));
+		List<int[]> runs = new ArrayList<>();
+		int y = top;
+		for (Rect o : obs) {
+			int start = o.y() - GAP;
+			if (start > y) {
+				runs.add(new int[] {y, Math.min(start, limit)});
+			}
+			y = Math.max(y, o.bottom() + GAP);
+			if (y >= limit) {
+				break;
+			}
+		}
+		if (y < limit) {
+			runs.add(new int[] {y, limit});
+		}
+		int[] best = null;
+		for (int[] r : runs) {
+			if (r[1] - r[0] >= want) {
+				return r;
+			}
+			if (best == null || r[1] - r[0] > best[1] - best[0]) {
+				best = r;
+			}
+		}
+		return best != null ? best : new int[] {top, top};
 	}
 
 	/** The room right of {@code x} on the rows {@code y..y+h}: up to the toast column or the nearest centre slot, less a gap. */

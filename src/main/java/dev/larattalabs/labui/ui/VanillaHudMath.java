@@ -13,6 +13,8 @@ public final class VanillaHudMath {
 	public static final int BOSS_TOP = 12;
 	public static final int BOSS_STEP = 19;
 	public static final int BOSS_BAR_H = 5;
+	/** A boss bar's width (centred; its name sits 9 px above it). */
+	public static final int BOSS_BAR_W = 182;
 	/** Effect icons: 24 px, 25 px apart from the right edge; the beneficial row at y 1, the others 26 below; demo adds 15. */
 	public static final int EFFECT_SIZE = 24;
 	public static final int EFFECT_STEP = 25;
