@@ -221,7 +221,7 @@ HudZones.add(MyMod.id("status"), HudZone.TOP_LEFT, new HudZones.Element() {
 | `BOTTOM_CENTER` | centred, stacking up from 64 px above the bottom; never over the crosshair (on a short screen the floor drops to just above the hotbar) | laid out first: aimed panels never move for anything |
 | `TOP_CENTER` | centred, stacking down below vanilla's boss bars, to the crosshair | |
 | `TOP_LEFT` | x 6, stacking down below vanilla's "Now playing" toast; each piece's `maxW` ends at the toast column or the top-centre pieces and boss bars beside it | answering wider than `maxW` moves the piece below them |
-| `TOP_RIGHT_TOASTS` | the toast column (196 wide, 6 from the right), below vanilla's toasts and effect icons, in the first free run between the pieces other zones placed in it | `Toasts` is its priority-0 element |
+| `TOP_RIGHT_TOASTS` | the toast column (196 wide, 6 from the right), below vanilla's toasts and effect icons, in the first free run between the pieces other zones placed in it | `Toasts` is its priority-0 element. A piece's `minH` here is a claim: it is placed before the top-centre pieces that cross the column, which start below it and collapse first. `Toasts` claims a need-you toast's title row, so one is never folded away; info toasts claim nothing and may fold into "+N more" |
 | `LEFT`, `RIGHT` | the edges, centred on the middle | nothing uses them yet |
 
 - **Priority** (default 50): higher sits nearer the zone's anchor edge and shrinks or hides last.
@@ -261,6 +261,9 @@ Additive: every 0.2.0 class and method is unchanged. Seams:
   the pure layout can use it) rather than `HudZones.Zone`; `Size`'s flag is `hideable` (its builder stays `optional()`);
   there is no `whenHudHidden` (Fabric never draws HUD elements under F1); `Toasts.Spec` replaces the positional
   `maxBodyLines` overload (Steward's review).
+- **A need-you toast outranks status lines** (coordinator, after the GUI-4 shots): the toasts claim a need-you toast's
+  title row ahead of the top-centre pieces; when the column is short, the toast draws as its title row only
+  (`ToastStack.layoutNeedFirst`), and the rest count on "+N more" when that fits.
 
 ## Migrating from AgentCraft Worlds, Architect or Steward
 

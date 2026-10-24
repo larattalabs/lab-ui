@@ -1,6 +1,7 @@
 package dev.larattalabs.labui.ui;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import dev.larattalabs.labui.ui.ToastStack.Item;
@@ -97,5 +98,36 @@ class ToastStackTest {
 		Layout l = ToastStack.layout(items, 40, 100, 4, 3, 13);
 		assertEquals(List.of(1), l.shown());
 		assertEquals(1, l.hidden());
+	}
+
+	@Test
+	void aNeedYouToastShrinksToItsTitleRowRatherThanFoldAway() {
+		List<Item> items = inOrder(List.of(false, true, false), 56);
+		// 30 px: no full toast fits; the need-you one shows compact (22), and the "+2 more" line does not fit under it
+		ToastStack.Fitted f = ToastStack.layoutNeedFirst(items, 100, 130, 4, 3, 13, 22);
+		assertTrue(f.compactFirst());
+		assertEquals(List.of(0), f.layout().shown());
+		assertEquals(List.of(100), f.layout().ys());
+		assertEquals(2, f.layout().hidden());
+		assertEquals(0, f.layout().hiddenNeed());
+		assertEquals(-1, f.layout().moreY());
+		// 40 px: room for the "+2 more" line under it
+		f = ToastStack.layoutNeedFirst(items, 100, 140, 4, 3, 13, 22);
+		assertEquals(126, f.layout().moreY());
+		// enough room: the plain layout, nothing compact
+		f = ToastStack.layoutNeedFirst(items, 100, 400, 4, 3, 13, 22);
+		assertFalse(f.compactFirst());
+		assertEquals(ToastStack.layout(items, 100, 400, 4, 3, 13), f.layout());
+	}
+
+	@Test
+	void infoToastsStillFoldIntoMore() {
+		List<Item> items = inOrder(List.of(false, false), 56);
+		ToastStack.Fitted f = ToastStack.layoutNeedFirst(items, 100, 130, 4, 3, 13, 22);
+		assertFalse(f.compactFirst());
+		assertTrue(f.layout().shown().isEmpty());
+		// and with less than the title row, a need-you toast folds too
+		f = ToastStack.layoutNeedFirst(inOrder(List.of(true), 56), 100, 115, 4, 3, 13, 22);
+		assertFalse(f.compactFirst());
 	}
 }

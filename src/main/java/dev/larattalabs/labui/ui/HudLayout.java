@@ -123,6 +123,27 @@ public final class HudLayout {
 			zones.put(HudZone.BOTTOM_CENTER, new Rect(0, top, gw, space));
 			place(HudZone.BOTTOM_CENTER, live, elems, wants, bottom, false, space, slots, hidden, overflow, (w) -> (gw - w) / 2);
 		}
+		// ---- the toast column's claim: what its pieces must show at least (a need-you toast's title row) comes before the
+		// top-centre status pieces that cross the column; they start below it and collapse first
+		int columnX = gw - TOAST_MARGIN - TOAST_W;
+		int columnTop = TOAST_TOP;
+		if (v.effectsBottom() > 0) {
+			columnTop = Math.max(columnTop, v.effectsBottom() + 2);
+		}
+		if (v.toastsBottom() > 0) {
+			columnTop = Math.max(columnTop, v.toastsBottom() + GAP);
+		}
+		if (v.bossBottom() > 0 && gw / 2 + VanillaHudMath.BOSS_BAR_W / 2 > columnX) {
+			columnTop = Math.max(columnTop, v.bossBottom() + GAP);
+		}
+		List<Integer> toastLive = measureAll(members(elems, HudZone.TOP_RIGHT_TOASTS), m, TOAST_W, wants);
+		int claim = 0;
+		for (int i : toastLive) {
+			int mh = Math.min(wants.get(i).h(), wants.get(i).minH());
+			if (mh > 0) {
+				claim += (claim > 0 ? GAP : 0) + mh;
+			}
+		}
 		// ---- TOP_CENTER: down from below the boss bars, to the crosshair
 		{
 			List<Integer> ids = members(elems, HudZone.TOP_CENTER);
@@ -137,6 +158,9 @@ public final class HudLayout {
 			if (v.nowPlayingBottom() > 0 && (gw - widest) / 2 < v.nowPlayingWidth() + GAP) {
 				top = Math.max(top, v.nowPlayingBottom() + GAP);
 			}
+			if (claim > 0 && (gw + widest) / 2 > columnX - GAP && top < columnTop + claim + GAP) {
+				top = columnTop + claim + GAP;
+			}
 			zones.put(HudZone.TOP_CENTER, new Rect(0, top, gw, Math.max(0, limit - top)));
 			place(HudZone.TOP_CENTER, live, elems, wants, top, true, limit - top, slots, hidden, overflow, (w) -> (gw - w) / 2);
 		}
@@ -147,7 +171,6 @@ public final class HudLayout {
 		if (boss != null) {
 			centre.add(boss);
 		}
-		int columnX = gw - TOAST_MARGIN - TOAST_W;
 		// ---- TOP_LEFT: down from the corner (below "Now playing"); each element ends at the toast column or a centre slot
 		{
 			List<Integer> ids = members(elems, HudZone.TOP_LEFT);
@@ -219,14 +242,7 @@ public final class HudLayout {
 		}
 		// ---- TOP_RIGHT_TOASTS: the column, below vanilla's effects and toasts, above what the other zones placed in it
 		{
-			List<Integer> ids = members(elems, HudZone.TOP_RIGHT_TOASTS);
-			int top = TOAST_TOP;
-			if (v.effectsBottom() > 0) {
-				top = Math.max(top, v.effectsBottom() + 2);
-			}
-			if (v.toastsBottom() > 0) {
-				top = Math.max(top, v.toastsBottom() + GAP);
-			}
+			int top = columnTop;
 			int limit = gh - (f.survivalBars() ? 50 : 26);
 			List<Rect> obstacles = new ArrayList<>();
 			for (Slot s : slots) {
@@ -248,9 +264,10 @@ public final class HudLayout {
 					limit = Math.min(limit, s.y() - GAP);
 				}
 			}
-			List<Integer> live = measureAll(ids, m, TOAST_W, wants);
-			// the free runs of the column between the obstacles: the first that holds the whole stack, else the tallest
-			int[] run = freeRun(top, limit, obstacles, totalWanted(live, wants));
+			List<Integer> live = toastLive;
+			// the free runs of the column between the obstacles: the first that holds the whole stack, else the tallest that
+			// holds the claim
+			int[] run = freeRun(top, limit, obstacles, totalWanted(live, wants), claim);
 			top = run[0];
 			limit = run[1];
 			zones.put(HudZone.TOP_RIGHT_TOASTS, new Rect(columnX, top, TOAST_W, Math.max(0, limit - top)));
@@ -282,11 +299,16 @@ public final class HudLayout {
 		return new Layout(List.copyOf(slots), List.copyOf(hidden), zones, List.copyOf(overflow));
 	}
 
+	static int[] freeRun(int top, int limit, List<Rect> obstacles, int want) {
+		return freeRun(top, limit, obstacles, want, 0);
+	}
+
 	/**
 	 * The free runs of {@code [top, limit)} once {@code obstacles} (each with a {@link #GAP} around it) are taken out: the
-	 * first run at least {@code want} tall, else the tallest (the first of equals). Returns {top, limit}.
+	 * first run at least {@code want} tall; else the tallest of those at least {@code claim} tall; else the tallest (the
+	 * first of equals). Returns {top, limit}.
 	 */
-	static int[] freeRun(int top, int limit, List<Rect> obstacles, int want) {
+	static int[] freeRun(int top, int limit, List<Rect> obstacles, int want, int claim) {
 		List<Rect> obs = new ArrayList<>(obstacles);
 		obs.sort(Comparator.comparingInt(Rect::y));
 		List<int[]> runs = new ArrayList<>();
@@ -305,15 +327,20 @@ public final class HudLayout {
 			runs.add(new int[] {y, limit});
 		}
 		int[] best = null;
+		int[] bestClaim = null;
 		for (int[] r : runs) {
-			if (r[1] - r[0] >= want) {
+			int h = r[1] - r[0];
+			if (h >= want) {
 				return r;
 			}
-			if (best == null || r[1] - r[0] > best[1] - best[0]) {
+			if (claim > 0 && h >= claim && (bestClaim == null || h > bestClaim[1] - bestClaim[0])) {
+				bestClaim = r;
+			}
+			if (best == null || h > best[1] - best[0]) {
 				best = r;
 			}
 		}
-		return best != null ? best : new int[] {top, top};
+		return bestClaim != null ? bestClaim : best != null ? best : new int[] {top, top};
 	}
 
 	/** The room right of {@code x} on the rows {@code y..y+h}: up to the toast column or the nearest centre slot, less a gap. */

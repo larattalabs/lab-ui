@@ -78,7 +78,7 @@ class HudLayoutTest {
 	static Scene everything(int toastsH) {
 		Scene sc = new Scene();
 		sc.add(HudZone.BOTTOM_CENTER, 100, maxW -> new Want(Math.min(420, maxW), 96, 46, false)); // placement panel (HudFit KEEP rows)
-		sc.add(HudZone.TOP_CENTER, 70, fixed(300, 28)); // region ghost HUD
+		sc.add(HudZone.TOP_CENTER, 70, maxW -> new Want(Math.min(300, maxW), 28, 14, false)); // region ghost HUD, 2 lines or 1
 		sc.add(HudZone.TOP_CENTER, 60, maxW -> new Want(Math.min(360, maxW), 20, 14, false)); // construction HUD, full or one line
 		sc.add(HudZone.TOP_LEFT, 60, stewardLine(330)); // Steward's inbox line
 		// helper strip: drops its npm line, and is optional (its progress also shows in Architect's Status tab)
@@ -242,6 +242,55 @@ class HudLayoutTest {
 		noOverlap(l, bars);
 		Slot steward = l.slot(3);
 		assertTrue(steward.x() + steward.w() <= bars.x() - HudLayout.GAP, "steward " + steward);
+	}
+
+	/** The toast stack with a need-you toast first: the whole stack wanted, its title row (22) claimed. */
+	static IntFunction<Want> toastsWithNeed(int h) {
+		return maxW -> new Want(196, h, 22, false);
+	}
+
+	@Test
+	void aNeedYouToastOutranksTheStatusLinesAtGuiFourOn1080p() {
+		// 1920x1080 at GUI 4 = 480x270, survival, every piece of both mods, two raid bars, both effect rows and a vanilla
+		// toast: the column used to starve to "+N more" while the region and site lines stayed full
+		Scene sc = everything(0);
+		sc.wants.set(5, toastsWithNeed(170));
+		Vanilla v = new Vanilla(VanillaHudMath.bossBottom(2, 270), VanillaHudMath.effectsBottom(1, 1, false), 32, 0);
+		Layout l = sc.layout(new Frame(480, 270, true), v, List.of());
+		noOverlap(l);
+		noOverlap(l, new Rect(240 - 91, 3, 182, 36 - 3));
+		Slot toasts = l.slot(5);
+		assertNotNull(toasts);
+		assertTrue(toasts.h() >= 22, "the need-you toast's title row shows: " + toasts);
+		assertEquals(53, toasts.y()); // right under the effect icons, above the status lines
+		Slot region = l.slot(1);
+		Slot site = l.slot(2);
+		assertTrue(region.y() >= toasts.y() + 22 + HudLayout.GAP, "the status lines start below the claim: " + region);
+		// the status lines gave way first: collapsed to one line each
+		assertTrue(region.collapsed() && site.collapsed(), region + " " + site);
+		// the placement panel is untouched by any of it
+		assertEquals(l.slot(0), everything(0).layout(new Frame(480, 270, true), v, List.of()).slot(0));
+		assertTrue(l.overflow().isEmpty(), "overflow " + l.overflow());
+	}
+
+	@Test
+	void infoToastsStillFoldAway() {
+		Scene sc = everything(170); // no need-you toast: nothing claimed, the toasts may shrink to nothing
+		Vanilla v = new Vanilla(VanillaHudMath.bossBottom(2, 270), VanillaHudMath.effectsBottom(1, 1, false), 32, 0);
+		Layout l = sc.layout(new Frame(480, 270, true), v, List.of());
+		noOverlap(l);
+		assertFalse(l.slot(1).collapsed(), "the status lines keep their full form when no toast needs the player");
+	}
+
+	@Test
+	void onAWideScreenTheClaimMovesNothing() {
+		Scene sc = everything(0);
+		sc.wants.set(5, toastsWithNeed(170));
+		Layout with = sc.layout(new Frame(960, 540, true), Vanilla.NONE, List.of());
+		Layout without = everything(0).layout(new Frame(960, 540, true), Vanilla.NONE, List.of());
+		assertEquals(without.slot(1), with.slot(1));
+		assertEquals(without.slot(2), with.slot(2));
+		assertEquals(170, with.slot(5).h());
 	}
 
 	@Test

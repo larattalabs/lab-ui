@@ -109,6 +109,31 @@ public final class ToastStack {
 		return new Layout(List.copyOf(shown), List.copyOf(ys), hidden, hiddenNeed, moreY);
 	}
 
+	/** A layout whose first toast may be drawn compact (its title row only, 0.3.0): see {@link #layoutNeedFirst}. */
+	public record Fitted(Layout layout, boolean compactFirst) {
+	}
+
+	/**
+	 * {@link #layout}, except that a need-you toast is never folded away entirely (0.3.0): when no toast fits but the first
+	 * one (in display order) needs the player and {@code compactH} (its title row) fits, it is drawn compact at {@code top},
+	 * and the rest count on the "+N more" line under it when that fits. Info toasts still fold into "+N more".
+	 */
+	public static Fitted layoutNeedFirst(List<Item> items, int top, int limit, int gap, int maxShown, int moreH, int compactH) {
+		Layout l = layout(items, top, limit, gap, maxShown, moreH);
+		if (!l.shown().isEmpty() || items.isEmpty() || !items.get(0).need() || top + compactH > limit) {
+			return new Fitted(l, false);
+		}
+		int hiddenNeed = -1;
+		for (Item it : items) {
+			if (it.need()) {
+				hiddenNeed++;
+			}
+		}
+		int hidden = items.size() - 1;
+		int moreY = hidden > 0 && top + compactH + gap + moreH <= limit ? top + compactH + gap : -1;
+		return new Fitted(new Layout(List.of(0), List.of(top), hidden, hiddenNeed, moreY), true);
+	}
+
 	/** Text measuring for {@link #fitTitle} and {@link #clipBody} (the client passes the font's; tests a fixed-width one). */
 	public interface Measure {
 		int width(String s);

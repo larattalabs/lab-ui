@@ -15,7 +15,8 @@ playing" (`VanillaHud`, `VanillaHudMath`; read through `lab_ui.client.mixins.jso
 
 **Toasts.** The stack is the toast zone's element (below vanilla's toasts and effects); `Toasts.Spec` and `push(Spec)` add
 up to three body lines and a title subject shortened first (`ToastStack.fitTitle`, `clipBody`). `avoid` is unchanged in
-meaning.
+meaning. A need-you toast is never folded away: the stack claims its title row ahead of the top-centre
+status pieces, which collapse first, and draws it compact when space is short (`ToastStack.layoutNeedFirst`).
 
 **Build.** The client classes are in the variant a composite (`includeBuild`) consumer compiles against.
 

@@ -227,7 +227,12 @@ public final class Toasts implements HudElement {
 			if (l.moreY() >= 0) {
 				h = Math.max(h, l.moreY() + MORE_H);
 			}
-			return h <= 0 ? null : new HudZones.Size(W, h, 0, true);
+			if (h <= 0) {
+				return null;
+			}
+			// a need-you toast claims at least its title row, ahead of the top-centre status pieces; info toasts may fold away
+			boolean need = !items.isEmpty() && items.get(0).need();
+			return need ? new HudZones.Size(W, h, Math.min(h, compactH()), false) : new HudZones.Size(W, h, 0, true);
 		}
 
 		@Override
@@ -244,7 +249,8 @@ public final class Toasts implements HudElement {
 			order.add(t);
 			items.add(new ToastStack.Item(t.need(), height(font, t)));
 		}
-		ToastStack.Layout l = ToastStack.layout(items, top, limit, 4, ToastStack.MAX_SHOWN, MORE_H);
+		ToastStack.Fitted fitted = ToastStack.layoutNeedFirst(items, top, limit, 4, ToastStack.MAX_SHOWN, MORE_H, compactH());
+		ToastStack.Layout l = fitted.layout();
 		lastLayout = l;
 		lastOrder = order;
 		for (int k = 0; k < l.shown().size(); k++) {
@@ -252,7 +258,11 @@ public final class Toasts implements HudElement {
 			if (t.start < 0) {
 				t.start = now;
 			}
-			draw(g, font, t, now, l.ys().get(k));
+			if (fitted.compactFirst() && k == 0) {
+				drawCompact(g, font, t, now, l.ys().get(k));
+			} else {
+				draw(g, font, t, now, l.ys().get(k));
+			}
 		}
 		if (l.moreY() >= 0) {
 			String text = ToastStack.moreText(l.hidden(), l.hiddenNeed());
@@ -261,6 +271,37 @@ public final class Toasts implements HudElement {
 			Panels.sprite(g, Kit.PANEL_PAPER, x, l.moreY(), w, MORE_H, 0xFFFFFFFF);
 			g.text(font, TextUtil.ellipsize(font, text, w - 12), x + 6, l.moreY() + 3, l.hiddenNeed() > 0 ? UiStyle.CLAY_DARK : UiBits.muted(), false);
 		}
+	}
+
+	/** A need-you toast's title row (0.3.0): what the stack shows at least when space is short. */
+	static int compactH() {
+		Kit.Padding p = Kit.padding("panel_paper");
+		return p.top() + 12 + p.bottom() - 2;
+	}
+
+	/** A need-you toast as its title row only, for a short column: the clay stripe, the icon and the fitted title. */
+	private static void drawCompact(GuiGraphicsExtractor g, Font font, Toast t, long now, int y) {
+		Kit.Padding p = Kit.padding("panel_paper");
+		int h = compactH();
+		long age = now - t.start;
+		float slide = Math.min(1f, age / (float) SLIDE_MS);
+		slide = 1f - (1f - slide) * (1f - slide);
+		long left = t.life - age;
+		float fade = left < FADE_MS ? Math.max(0f, left / (float) FADE_MS) : 1f;
+		int x = g.guiWidth() - 6 - W + (int) ((1f - slide) * (W + 10));
+		int a = (int) (255 * fade);
+		if (a < 8) {
+			return;
+		}
+		int tint = (a << 24) | 0xFFFFFF;
+		Panels.sprite(g, Kit.PANEL_PAPER, x, y, W, h, tint);
+		g.fill(x + 3, y + 4, x + 5, y + h - 4, UiStyle.withAlpha(UiStyle.CLAY, a));
+		int px = x + p.left();
+		int py = y + p.top() - 1;
+		Panels.sprite(g, Kit.icon(t.icon), px + 2, py, 12, 12, tint);
+		int textX = p.left() + 20;
+		int textW = W - textX - p.right();
+		g.text(font, ToastStack.fitTitle(t.title, t.subject, textW, measure(font)), x + textX, py + 2, UiStyle.withAlpha(UiStyle.CLAY_DARK, a), false);
 	}
 
 	/** {@link ToastStack.Measure} over a font. */
