@@ -80,13 +80,16 @@ public final class Confirm extends Control {
 		}
 	}
 
-	/** A click on it presses it; a click elsewhere disarms it (and returns false, so the click goes on). */
+	/**
+	 * A click on it presses it; a click elsewhere disarms it (and returns false, so the click goes on). Forward every click
+	 * to the screen's Confirms before any control that consumes it, or "a click elsewhere cancels" cannot happen.
+	 */
 	@Override
 	public boolean mouseClicked(double mx, double my, int button) {
 		if (contains(mx, my)) {
 			return super.mouseClicked(mx, my, button);
 		}
-		arm.clickedElsewhere(null);
+		arm.clickedOutside(key);
 		return false;
 	}
 

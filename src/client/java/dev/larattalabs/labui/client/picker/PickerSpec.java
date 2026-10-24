@@ -47,6 +47,8 @@ public final class PickerSpec {
 	private @Nullable DetailPreview detailPreview;
 	private int compactChoices = 3;
 	private @Nullable String subtitle;
+	private @Nullable Consumer<PickerScreen> onTags;
+	private @Nullable Consumer<PickerScreen> onCompare;
 
 	private PickerSpec(String id, String title, List<PickerEntry> entries) {
 		this.id = id;
@@ -111,6 +113,26 @@ public final class PickerSpec {
 	public PickerSpec subtitle(@Nullable String s) {
 		subtitle = s;
 		return this;
+	}
+
+	/** Hook for the Tags chip (enabled only when set): e.g. open a tag popup and filter with {@code screen.model()}. */
+	public PickerSpec onTags(@Nullable Consumer<PickerScreen> hook) {
+		onTags = hook;
+		return this;
+	}
+
+	/** Hook for the Compare chip (enabled only when set). */
+	public PickerSpec onCompare(@Nullable Consumer<PickerScreen> hook) {
+		onCompare = hook;
+		return this;
+	}
+
+	public @Nullable Consumer<PickerScreen> onTags() {
+		return onTags;
+	}
+
+	public @Nullable Consumer<PickerScreen> onCompare() {
+		return onCompare;
 	}
 
 	public String id() {

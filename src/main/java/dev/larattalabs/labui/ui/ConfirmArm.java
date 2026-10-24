@@ -94,6 +94,16 @@ public final class ConfirmArm {
 		armedAt = 0;
 	}
 
+	/**
+	 * A click missed the control of {@code ownKey}: cancels when that key is the armed one. Each control of a shared arm
+	 * calls this with its own key, so a click on another armable control never disarms it before it is pressed.
+	 */
+	public void clickedOutside(String ownKey) {
+		if (ownKey.equals(key)) {
+			cancel();
+		}
+	}
+
 	/** A click landed on {@code clickedKey} (null = on nothing armable): anything else armed is cancelled. */
 	public void clickedElsewhere(@Nullable String clickedKey) {
 		if (key != null && !key.equals(clickedKey)) {

@@ -45,6 +45,21 @@ class ConfirmArmTest {
 	}
 
 	@Test
+	void sharedArmClicksForwardedToEveryControlStillConfirm() {
+		ConfirmArm c = new ConfirmArm(5000);
+		// two controls, "a" then "b", on one arm; every click goes to a first, then b
+		c.clickedOutside("a");
+		assertEquals(Result.ARMED, c.press("b", 100));
+		c.clickedOutside("a"); // the second click on b reaches a first: a is not the armed one, so b stays armed
+		assertEquals(Result.CONFIRMED, c.press("b", 200));
+		c.press("a", 300);
+		c.clickedOutside("b");
+		assertTrue(c.armed("a", 301));
+		c.clickedOutside("a"); // a click on empty space reaches a too
+		assertFalse(c.armed("a", 302));
+	}
+
+	@Test
 	void keyboardConfirmIgnoresRepeatsAndTooQuickPresses() {
 		ConfirmArm c = new ConfirmArm(5000);
 		assertEquals(Result.IGNORED, c.pressByKey("merge", 100, true), "a held key never arms");

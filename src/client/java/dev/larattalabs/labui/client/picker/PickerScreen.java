@@ -109,8 +109,16 @@ public class PickerScreen extends Screen {
 			model.setFavouritesOnly(!model.favouritesOnly());
 			gridScroll = 0;
 		});
-		tags.disabled(true).tooltip("Tag filters are coming");
-		compare.disabled(true).tooltip("Side-by-side compare is coming");
+		if (spec.onTags() != null) {
+			tags.onPress(() -> spec.onTags().accept(this));
+		} else {
+			tags.disabled(true).tooltip("Tag filters are coming");
+		}
+		if (spec.onCompare() != null) {
+			compare.onPress(() -> spec.onCompare().accept(this));
+		} else {
+			compare.disabled(true).tooltip("Side-by-side compare is coming");
+		}
 		pick.primary(true);
 		empty.action("Clear search", this::clearSearch);
 	}
@@ -171,6 +179,12 @@ public class PickerScreen extends Screen {
 			model.setQuery(search.value());
 			model.setGroup(null);
 			gridScroll = 0;
+			// the top match is what Enter picks: select it, so the highlight, the detail pane and Enter agree
+			List<PickerEntry> v = model.visible();
+			if (!search.value().isBlank() && !v.isEmpty()) {
+				model.select(v.get(0).id());
+				keyLast = true;
+			}
 		}
 	}
 
@@ -195,7 +209,16 @@ public class PickerScreen extends Screen {
 		return cur != null ? cur : visible.isEmpty() ? null : visible.get(0);
 	}
 
-	/** Picks the selection (or, from the search box, the first match). */
+	/** The chip a Tags hook may anchor a popup to. */
+	public Chip tagsChip() {
+		return tags;
+	}
+
+	public Chip compareChip() {
+		return compare;
+	}
+
+	/** Picks the selection (after typing a search, that is the top match). */
 	public void pickSelected() {
 		PickerEntry e = model.selected();
 		if (e == null && !visible.isEmpty()) {
@@ -682,7 +705,7 @@ public class PickerScreen extends Screen {
 					revealSelection();
 					return true;
 				}
-				if (NavKeys.activates(e)) {
+				if (NavKeys.isEnter(e)) {
 					pickSelected();
 					return true;
 				}
@@ -711,7 +734,7 @@ public class PickerScreen extends Screen {
 					}
 					return true;
 				}
-				if (k == ListNav.Key.RIGHT || NavKeys.activates(e)) {
+				if (k == ListNav.Key.RIGHT || NavKeys.isEnter(e)) {
 					focus = Focus.GRID;
 					if (model.selectedIndex() < 0) {
 						model.move(ListNav.Key.HOME, cols, true, pageRows());
