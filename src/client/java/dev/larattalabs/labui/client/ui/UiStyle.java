@@ -152,6 +152,87 @@ public final class UiStyle {
 		return color("semantic.link", 0xFF874431);
 	}
 
+	// ------------------------------------------------------------------ on-dark tokens (0.3.0; ui-style.json "semantic_on_dark")
+
+	/**
+	 * Text and marks on dark surfaces: the HUD ink panel ({@code Kit.TOOLTIP}), nameplates, dark monitors
+	 * ({@code ScreenStyle.dark}) and a walnut slate. The {@code semantic.*} tokens above are for paper and come out about
+	 * 2:1 here. Every text token is at least 4.5:1 on each of those surfaces as drawn, also with the 90%-opaque HUD panel
+	 * over a white world ({@code semantic_on_dark_contrast} in ui-style.json; checked by {@code OnDarkContrastTest}).
+	 */
+	public static final class OnDark {
+		private OnDark() {
+		}
+
+		/** Body text (cream; 9.3:1 at worst). */
+		public static int text() {
+			return color("semantic_on_dark.text", CREAM);
+		}
+
+		/** Secondary text, key hints (= {@code ink_ui.activity}; 5.7:1). */
+		public static int muted() {
+			return color("semantic_on_dark.muted", 0xFFC4BDB2);
+		}
+
+		/** Errors, refusals (4.8:1). */
+		public static int error() {
+			return color("semantic_on_dark.error", 0xFFF2948B);
+		}
+
+		/** Cautions (amber, a different hue from {@link #error()}; 5.9:1). */
+		public static int warn() {
+			return color("semantic_on_dark.warn", 0xFFF2B66A);
+		}
+
+		/** Ready, done (6.2:1). */
+		public static int ok() {
+			return color("semantic_on_dark.ok", 0xFFB8CBB3);
+		}
+
+		/** Notes and links on dark (teal; 6.1:1). */
+		public static int accent() {
+			return color("semantic_on_dark.accent", 0xFF80D2CD);
+		}
+
+		/** A selected or armed choice's text and edge (brass light; 6.4:1). */
+		public static int selected() {
+			return color("semantic_on_dark.selected", 0xFFE6C659);
+		}
+
+		/** The fill behind a selected or armed choice: {@link #selected()} at alpha 0x30. */
+		public static int selectedFill() {
+			return withAlpha(selected(), 0x30);
+		}
+
+		/** The keyboard focus ring on dark (a mark, 4.4:1 at worst; = the paper {@link UiStyle#focusRing()}). */
+		public static int focus() {
+			return color("semantic_on_dark.focus", BRASS);
+		}
+
+		/** The HUD panel's body (the tooltip sprite's colour) and its rim. Surfaces, not text. */
+		public static int panel() {
+			return color("semantic_on_dark.panel", 0xFF2B2927);
+		}
+
+		public static int panelEdge() {
+			return color("semantic_on_dark.panel_edge", 0xFF4A4642);
+		}
+
+		/** Chip edges and hairlines on dark (= {@code monitor_dark.rule}). */
+		public static int rule() {
+			return color("semantic_on_dark.rule", 0xFF4A423B);
+		}
+
+		/** A progress bar's fill (= {@code status.working}; a mark, 3.5:1 at worst) and its track. */
+		public static int bar() {
+			return color("semantic_on_dark.bar", TEAL);
+		}
+
+		public static int track() {
+			return withAlpha(muted(), 0x60);
+		}
+	}
+
 	public static int metric(String path, int fallback) {
 		Double d = NUMBERS.get(path);
 		return d == null ? fallback : (int) Math.round(d);

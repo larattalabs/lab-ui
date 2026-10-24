@@ -1,0 +1,14 @@
+{
+	"required": false,
+	"minVersion": "0.8",
+	"package": "dev.larattalabs.labui.mixin.client",
+	"compatibilityLevel": "JAVA_25",
+	"client": [
+		"BossHealthOverlayAccess",
+		"ToastInstanceAccess",
+		"ToastManagerAccess"
+	],
+	"injectors": {
+		"defaultRequire": 0
+	}
+}

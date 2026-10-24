@@ -1,11 +1,11 @@
 package dev.larattalabs.labui.client.hud;
 
 import dev.larattalabs.labui.LabUi;
-import dev.larattalabs.labui.client.ui.GuardedHud;
 import dev.larattalabs.labui.client.ui.Kit;
 import dev.larattalabs.labui.client.ui.Panels;
 import dev.larattalabs.labui.client.ui.TextUtil;
 import dev.larattalabs.labui.client.ui.UiStyle;
+import dev.larattalabs.labui.ui.HudZone;
 import dev.larattalabs.labui.ui.ToastStack;
 import java.util.ArrayList;
 import java.util.List;
@@ -13,7 +13,6 @@ import java.util.Locale;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Supplier;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElement;
-import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
@@ -28,8 +27,14 @@ import org.jspecify.annotations.Nullable;
  * {@link ToastStack}); what does not fit waits and is counted on one "+N more" line. Not drawn while a screen is open.
  *
  * <p>One stack for every mod (Fabric loads one lab-ui): call {@link #install()} from your client initializer instead of
- * registering a HUD element of your own (it registers {@code lab_ui:hud/toasts} once, crash-guarded), and
- * {@link #avoid} for any HUD panel of yours the stack must stay above (Architect's placement HUD).
+ * registering a HUD element of your own, and {@link #avoid} for any HUD panel of yours the stack must stay above that is
+ * not a {@link HudZones} element.
+ *
+ * <p>0.3.0: the stack is the {@link HudZone#TOP_RIGHT_TOASTS} zone's lowest-priority element ({@code lab_ui:toasts},
+ * also its {@code Guard} kind), drawn by {@code lab_ui:hud/zones}: it starts below vanilla's toasts and effect icons and
+ * ends above whatever the other zones place in its column. {@link #push(Spec)} adds up to three body lines and a title
+ * {@link Spec#subject subject} that is shortened first. Registering {@code new Toasts()} yourself still draws the 0.2
+ * stack at the fixed top right (and draws every toast twice next to {@link #install()}).
  */
 public final class Toasts implements HudElement {
 	public enum Level { INFO, WARN, NEED }
@@ -43,6 +48,30 @@ public final class Toasts implements HudElement {
 	private static final List<Toast> ACTIVE = new ArrayList<>();
 	private static int shown;
 
+	/**
+	 * A toast (0.3.0): its level, title, body and optional key hint ("B" "open"); {@code maxBodyLines} 1-3 (clamped; 2 in
+	 * the plain overloads); {@code subject}, a prefix of the title shortened first when the title is too wide
+	 * ("Stilt Swamp Fishing… needs you"), or null for the plain ellipsis.
+	 */
+	public record Spec(Level level, String title, String body, @Nullable String hintKey, @Nullable String hintVerb, int maxBodyLines,
+		@Nullable String subject) {
+		public static Spec of(Level level, String title, String body) {
+			return new Spec(level, title, body, null, null, 2, null);
+		}
+
+		public Spec hint(@Nullable String key, @Nullable String verb) {
+			return new Spec(level, title, body, key, verb, maxBodyLines, subject);
+		}
+
+		public Spec bodyLines(int n) {
+			return new Spec(level, title, body, hintKey, hintVerb, n, subject);
+		}
+
+		public Spec subject(@Nullable String prefixOfTitle) {
+			return new Spec(level, title, body, hintKey, hintVerb, maxBodyLines, prefixOfTitle);
+		}
+	}
+
 	private static final class Toast {
 		final Level level;
 		final String title;
@@ -53,8 +82,13 @@ public final class Toasts implements HudElement {
 		final long life;
 		final @Nullable String hintKey;
 		final String hintVerb;
+		final int maxBodyLines;
+		final @Nullable String subject;
 
-		Toast(Level level, String title, String body, String icon, long arrived, long life, @Nullable String hintKey, String hintVerb) {
+		Toast(Level level, String title, String body, String icon, long arrived, long life, @Nullable String hintKey, String hintVerb,
+			int maxBodyLines, @Nullable String subject) {
+			this.maxBodyLines = ToastStack.bodyLines(maxBodyLines);
+			this.subject = subject;
 			this.level = level;
 			this.title = title;
 			this.body = body;
@@ -77,21 +111,26 @@ public final class Toasts implements HudElement {
 	private static final List<Supplier<int @Nullable []>> AVOID = new CopyOnWriteArrayList<>();
 	private static boolean installed;
 
-	/** Registers the one toast HUD element ({@code lab_ui:hud/toasts}); later calls do nothing. Client thread. */
+	/**
+	 * Installs the shared stack once (later calls do nothing; client thread): {@link HudZones#install()} and the
+	 * {@code lab_ui:toasts} element in {@link HudZone#TOP_RIGHT_TOASTS} (priority 0, so it gives way first).
+	 */
 	public static synchronized void install() {
 		if (installed) {
 			return;
 		}
 		installed = true;
-		HudElementRegistry.addLast(LabUi.id("hud/toasts"), GuardedHud.of("lab_ui.hud.toasts", new Toasts()));
+		HudZones.add(LabUi.id("toasts"), HudZone.TOP_RIGHT_TOASTS, new ZoneElement()).priority(0);
 	}
 
 	/**
 	 * A HUD rect ({x, y, w, h} in GUI px, or null when not shown) the stack must end above: it stops 4 px over the
-	 * highest top of all of them. Each mod adds its own; none replaces another's.
+	 * highest top of all of them. Each mod adds its own; none replaces another's. Since 0.3.0 the same as
+	 * {@code HudZones.avoid(HudZone.TOP_RIGHT_TOASTS, rect)}; zone elements need none.
 	 */
 	public static void avoid(Supplier<int @Nullable []> rect) {
 		AVOID.add(rect);
+		HudZones.avoid(HudZone.TOP_RIGHT_TOASTS, rect);
 	}
 
 	/** The lowest y the stack may reach: 4 px above the highest avoided rect, or {@code fallback}. */
@@ -124,13 +163,22 @@ public final class Toasts implements HudElement {
 
 	/** Add a toast (client thread) with an optional key hint ("B" "open"). */
 	public static void push(Level level, String title, String body, @Nullable String hintKey, @Nullable String hintVerb) {
+		push(new Spec(level, title, body, hintKey, hintVerb, 2, null));
+	}
+
+	/** Add a toast (client thread; 0.3.0): body lines and a title subject as {@code spec} says. */
+	public static void push(Spec spec) {
+		Level level = spec.level();
+		String hintKey = spec.hintKey();
+		String hintVerb = spec.hintVerb();
 		long life = switch (level) {
 			case NEED -> 9000;
 			case WARN -> 8000;
 			default -> 5500;
 		};
 		String icon = level == Level.NEED ? "decision" : level == Level.WARN ? "test" : "message";
-		ACTIVE.add(0, new Toast(level, title, body, icon, Util.getMillis(), life, hintKey, hintVerb == null ? "" : hintVerb));
+		ACTIVE.add(0, new Toast(level, spec.title(), spec.body(), icon, Util.getMillis(), life, hintKey, hintVerb == null ? "" : hintVerb,
+			spec.maxBodyLines(), spec.subject()));
 		for (int drop = ToastStack.evict(needs(ACTIVE), ToastStack.MAX_KEPT); drop >= 0; drop = ToastStack.evict(needs(ACTIVE), ToastStack.MAX_KEPT)) {
 			ACTIVE.remove(drop);
 		}
@@ -145,6 +193,7 @@ public final class Toasts implements HudElement {
 		return out;
 	}
 
+	/** The 0.2 path, for a {@code new Toasts()} registered by hand: the stack at the fixed top right, ending above {@link #avoid}'s rects. */
 	@Override
 	public void extractRenderState(GuiGraphicsExtractor g, DeltaTracker deltaTracker) {
 		Minecraft mc = Minecraft.getInstance();
@@ -153,10 +202,41 @@ public final class Toasts implements HudElement {
 		if (mc.player == null || ACTIVE.isEmpty() || mc.gui.screen() != null) {
 			return;
 		}
-		Font font = mc.font;
-		int y = 8;
 		boolean bars = mc.gameMode != null && mc.gameMode.getPlayerMode().isSurvival();
-		int limit = limit(g.guiHeight() - (bars ? 50 : 26));
+		drawStack(g, mc.font, 8, limit(g.guiHeight() - (bars ? 50 : 26)), now);
+	}
+
+	/** The stack as the {@link HudZone#TOP_RIGHT_TOASTS} zone's element (0.3.0): it wants the whole stack, takes what is left. */
+	private static final class ZoneElement implements HudZones.Element {
+		@Override
+		public HudZones.@Nullable Size measure(Font font, HudZones.Frame f, int maxW) {
+			long now = f.nowMs();
+			ACTIVE.removeIf(t -> t.over(now));
+			if (Minecraft.getInstance().player == null || ACTIVE.isEmpty()) {
+				return null;
+			}
+			List<ToastStack.Item> items = new ArrayList<>();
+			for (int i : ToastStack.order(needs(ACTIVE))) {
+				items.add(new ToastStack.Item(ACTIVE.get(i).need(), height(font, ACTIVE.get(i))));
+			}
+			ToastStack.Layout l = ToastStack.layout(items, 0, Integer.MAX_VALUE / 2, 4, ToastStack.MAX_SHOWN, MORE_H);
+			int h = 0;
+			for (int k = 0; k < l.shown().size(); k++) {
+				h = Math.max(h, l.ys().get(k) + items.get(l.shown().get(k)).height());
+			}
+			if (l.moreY() >= 0) {
+				h = Math.max(h, l.moreY() + MORE_H);
+			}
+			return h <= 0 ? null : new HudZones.Size(W, h, 0, true);
+		}
+
+		@Override
+		public void draw(GuiGraphicsExtractor g, Font font, HudZones.Frame f, HudZones.Slot slot) {
+			drawStack(g, font, slot.y(), slot.y() + slot.h(), f.nowMs());
+		}
+	}
+
+	private static void drawStack(GuiGraphicsExtractor g, Font font, int top, int limit, long now) {
 		List<Toast> order = new ArrayList<>();
 		List<ToastStack.Item> items = new ArrayList<>();
 		for (int i : ToastStack.order(needs(ACTIVE))) {
@@ -164,7 +244,7 @@ public final class Toasts implements HudElement {
 			order.add(t);
 			items.add(new ToastStack.Item(t.need(), height(font, t)));
 		}
-		ToastStack.Layout l = ToastStack.layout(items, y, limit, 4, ToastStack.MAX_SHOWN, MORE_H);
+		ToastStack.Layout l = ToastStack.layout(items, top, limit, 4, ToastStack.MAX_SHOWN, MORE_H);
 		lastLayout = l;
 		lastOrder = order;
 		for (int k = 0; k < l.shown().size(); k++) {
@@ -183,14 +263,31 @@ public final class Toasts implements HudElement {
 		}
 	}
 
+	/** {@link ToastStack.Measure} over a font. */
+	private static ToastStack.Measure measure(Font font) {
+		return new ToastStack.Measure() {
+			@Override
+			public int width(String s) {
+				return font.width(s);
+			}
+
+			@Override
+			public String ellipsize(String s, int maxWidth) {
+				return TextUtil.ellipsize(font, s, maxWidth);
+			}
+		};
+	}
+
 	private static List<FormattedCharSequence> lines(Font font, Toast t) {
 		Kit.Padding p = Kit.padding("panel_paper");
 		int textW = W - (p.left() + 20) - p.right();
 		List<FormattedCharSequence> lines = TextUtil.wrap(font, UiBits.oneLine(t.body), textW);
-		if (lines.size() > 2) {
-			String second = TextUtil.wrapPlain(font, UiBits.oneLine(t.body), textW).get(1);
-			lines = List.of(lines.get(0), net.minecraft.network.chat.Component.literal(TextUtil.ellipsize(font, second + " …", textW))
-				.getVisualOrderText());
+		if (lines.size() > t.maxBodyLines) {
+			// the first lines as wrapped, the last one cut with " …" (ToastStack.clipBody)
+			List<String> clipped = ToastStack.clipBody(TextUtil.wrapPlain(font, UiBits.oneLine(t.body), textW), t.maxBodyLines, textW, measure(font));
+			List<FormattedCharSequence> out = new ArrayList<>(lines.subList(0, t.maxBodyLines - 1));
+			out.add(net.minecraft.network.chat.Component.literal(clipped.get(clipped.size() - 1)).getVisualOrderText());
+			lines = out;
 		}
 		return lines;
 	}
@@ -245,8 +342,8 @@ public final class Toasts implements HudElement {
 		int py = y + p.top() - 1;
 		Panels.sprite(g, Kit.icon(t.icon), px + 2, py + 1, 12, 12, tint);
 		int tx = x + textX;
-		g.text(font, TextUtil.ellipsize(font, t.title, textW), tx, py + 1, UiStyle.withAlpha(need ? UiStyle.CLAY_DARK
-			: t.level == Level.WARN ? UiBits.errorText() : UiBits.ink(), a), false);
+		g.text(font, ToastStack.fitTitle(t.title, t.subject, textW, measure(font)), tx, py + 1, UiStyle.withAlpha(need ? UiStyle.CLAY_DARK
+			: t.level == Level.WARN ? UiStyle.error() : UiBits.ink(), a), false);
 		int ly = py + 12;
 		for (FormattedCharSequence line : lines) {
 			g.text(font, line, tx, ly, UiStyle.withAlpha(UiBits.ink(), a), false);
