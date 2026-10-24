@@ -4,7 +4,8 @@ Lab UI is a public Fabric library mod (Minecraft 26.3, Java 25): the shared clie
 the Warm Studio screen kit (`Kit`, `Panels`, `UiStyle`, `TextUtil`, `UiBits`), world-space UI (`WorldUi`,
 `SpeechBubble`, `DisplayDraw`, `ScreenStyle`) and the crash guard (`Guard`, `GuardedHud`). Mod id `lab_ui`, packages
 `dev.larattalabs.labui.*`, maven `dev.larattalabs:lab_ui`, resource namespace `lab_ui`. Consumers bundle it jar-in-jar.
-README.md has the class map, the consumer snippet and what changed when the code moved out of AgentCraft.
+README.md has the class map, the components (0.2.0), the consumer snippet and what changed when code moved in from AgentCraft,
+Architect and Steward. CHANGELOG.md lists what each version added.
 
 ## Consumers
 
@@ -20,7 +21,7 @@ installed next to the one that shipped it.
 
 - `export JAVA_HOME=/opt/homebrew/opt/openjdk@25 GRADLE_USER_HOME=$PWD/.gradle-home`. In a new checkout or worktree, first
   `cp -c -R ~/Developer/LarattaLabs/architect-mc/.gradle-home .` (an APFS clone, cheap), then `./gradlew build --offline`.
-- `./gradlew build` compiles, runs the unit tests (TextDepth, LeaderGaps, Guard) and builds the jar. CI (`ci.yml`) also
+- `./gradlew build` compiles, runs the unit tests (every pure class in `dev.larattalabs.labui.ui`) and builds the jar. CI (`ci.yml`) also
   checks the jar carries the classes, sprites, style files, LICENSE and NOTICE.
 - `./gradlew publishToMavenLocal` for testing a consumer against an unreleased version (`mavenLocal()` in the consumer).
 - Release: bump `mod_version` in `gradle.properties` on main, CI green, push tag `v<mod_version>`. `publish.yml` checks
