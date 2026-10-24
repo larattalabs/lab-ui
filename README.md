@@ -24,7 +24,7 @@ Lab UI is the shared client UI library of the Laratta Labs Minecraft mods (Agent
 
 ### Use it in your mod
 
-The jar is published to GitHub Packages at `https://maven.pkg.github.com/larattalabs/lab-ui`, as `dev.larattalabs:lab_ui:<version>` (latest: `0.1.0`).
+The jar is published to GitHub Packages at `https://maven.pkg.github.com/larattalabs/lab-ui`, as `dev.larattalabs:lab_ui:<version>` (latest: `0.2.0`, which adds the [components](#components-020)).
 
 **1. Get a token.** GitHub Packages' Maven registry needs one **even for public packages**: a token with the `read:packages` scope (a classic personal access token, or your GitHub CLI login). With the GitHub CLI:
 
@@ -35,7 +35,7 @@ export GITHUB_ACTOR=$(gh api user --jq .login) GITHUB_TOKEN=$(gh auth token)
 
 Or put them in `~/.gradle/gradle.properties` as `gpr.user` / `gpr.key`.
 
-**2. Add the repository and the dependency** to your `build.gradle` (Loom 1.18 with the non-remapping `net.fabricmc.fabric-loom` plugin, the same setup as the three mods), and set `lab_ui_version=0.1.0` in `gradle.properties`:
+**2. Add the repository and the dependency** to your `build.gradle` (Loom 1.18 with the non-remapping `net.fabricmc.fabric-loom` plugin, the same setup as the three mods), and set `lab_ui_version=0.2.0` in `gradle.properties`:
 
 ```groovy
 repositories {
@@ -65,7 +65,7 @@ With `splitEnvironmentSourceSets()`, `implementation` covers both `main` and `cl
 **3. Declare the range** in your `fabric.mod.json`. Then a clash between two mods that bundle different lab-ui versions becomes a clear loader error, not a `NoSuchMethodError`:
 
 ```json
-"depends": { "lab_ui": ">=0.1.0 <0.2.0" }
+"depends": { "lab_ui": ">=0.2.0 <0.3.0" }
 ```
 
 **CI in a consumer repo.** Steward's CI already resolves `dev.larattalabs:architect_mc` from GitHub Packages this way: give the workflow `permissions: packages: read`, and set the env `GITHUB_ACTOR: ${{ github.actor }}` and `GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}` for the Gradle step. If a consumer run still gets 401/403 on `lab_ui`, there are two fixes. Either grant that repo access in the package settings (github.com/larattalabs/lab-ui/packages, then "Package settings", then "Manage Actions access"), or use a PAT secret with `read:packages` instead.
@@ -84,7 +84,7 @@ Then:
 ```sh
 git clone https://github.com/larattalabs/lab-ui.git
 cd lab-ui
-./gradlew build                 # compile, unit tests (TextDepth, LeaderGaps, Guard), jar in build/libs/
+./gradlew build                 # compile, unit tests of the pure classes, jar in build/libs/
 ./gradlew publishToMavenLocal   # dev.larattalabs:lab_ui:<version> in ~/.m2
 ```
 
@@ -95,6 +95,7 @@ The first build downloads Minecraft and Fabric, which takes a few minutes. To te
 - **Screen kit.** The "Warm Studio" GUI sprites, panels, buttons, scrollbars and style tokens (`Kit`, `Panels`, `UiStyle`, `TextUtil`, `UiBits`).
 - **World-space UI.** Billboards, nine-sliced plates, text lift, speech bubbles and face displays (`WorldUi`, `SpeechBubble`, `DisplayDraw`, `ScreenStyle`).
 - **Crash guard.** HUD and tick handlers whose failures are logged once and swallowed, so they never crash the game (`Guard`, `GuardedHud`).
+- **Components (0.2.0).** Buttons, chips, lists, pickers, sections, tooltips, confirms, a chat pager, the text field and toasts (see [Components](#components-020)).
 
 It has no entrypoint, so nothing runs until a consumer calls it. Consumers bundle it jar-in-jar. The pure classes (`dev.larattalabs.labui.ui.*`) have unit tests; the client classes are exercised by the consuming mods.
 
@@ -120,16 +121,49 @@ Only code that builds `<yourmod>:kit/...` ids by hand changes, along with any re
 ## Project structure
 
 ```
-src/main/java/dev/larattalabs/labui/        LabUi (ids, logger) and ui/: TextDepth, LeaderGaps, Guard (pure, unit-tested)
+src/main/java/dev/larattalabs/labui/        LabUi (ids, logger) and ui/: the pure, unit-tested classes (TextDepth, LeaderGaps, Guard,
+                                            UiRules, ToastStack, ListNav, ScrollMath, TextMatch, ChipFlow, ConfirmArm, TooltipMath,
+                                            PickerMemory, SectionGrid, PickerModel, PageSlice, ChatPager)
 src/client/java/dev/larattalabs/labui/client/
   ui/                                       Kit, Panels, UiStyle, TextUtil, WorldUi, GuardedHud
-  hud/                                      UiBits
+  hud/                                      UiBits, Toasts
+  text/                                     TextModel, TextFieldView, TextKeys
+  widget/                                   Control, Button, Chip, ChipRow, ScrollList, CollapsibleSection, Tooltip, EmptyState,
+                                            Confirm, NavKeys, Paint
+  picker/                                   PickerEntry, PickerSpec, PickerStore, CompactPicker, PickerScreen
   monitor/                                  DisplayDraw, ScreenStyle
   world/                                    SpeechBubble
 src/main/resources/assets/lab_ui/           kit sprites, gui/kit.json, gui/ui-style.json, palette.json
 src/test/java/                              JUnit tests for the pure classes
 .github/workflows/                          ci.yml (build, test, jar contents), publish.yml (release tags)
 ```
+
+## Components (0.2.0)
+
+Immediate-mode, like the rest of the kit: a screen draws each component where its layout puts it every frame (which
+records its rect) and forwards its mouse and key events; every event method returns true when it consumed the event. A
+`Control` not drawn in the last 250 ms ignores clicks, so a collapsed section's chips need no bookkeeping. Keyboard focus
+belongs to the screen: set `focused(true)` on the control that Enter / Space should press. Pure logic lives in
+`dev.larattalabs.labui.ui` and is unit-tested.
+
+| Component | API in a line |
+|---|---|
+| Tokens | `UiStyle.error() warn() ok() mutedText() selected() selectedEdge() focusRing() rowHover() rowHoverEdge() rule() chip() chipEdge() field() titleBar() titleText() danger() dangerText() link()`, from `ui-style.json` `semantic.*` |
+| `Button` | `new Button(label, onPress).primary(b).danger(b).number(n)`; `draw(g, font, x, y, mx, my)` or `draw(g, font, x, y, w, h, mx, my)` (h ≥ 18); `Button.paint(...)` without a control |
+| `Chip` | `new Chip(label, onPress).selected(b).kind(NORMAL \| MORE).swatch(rgb).icon(stackSupplier)`; 18 px; `draw(g, font, x, y, mx, my)` returns the width |
+| `ChipRow` | `new ChipRow(chips).maxRows(n).onMore(hiddenCount -> …)`; `draw(g, font, x, y, w, mx, my)` returns the height; overflow folds into "+N" (tooltip lists the rest) |
+| `ScrollList<T>` | `new ScrollList<>(rowH, painter).filter(text, placeholder).empty(line).onActivate(c).onSelect(c).items(list)`; `draw(g, font, x, y, w, h, mx, my)`; wheel, draggable bar, arrows, Home/End, PgUp/PgDn, Enter / double click |
+| `CollapsibleSection` | `new CollapsibleSection(key, title, defaultOpen).summary("8 on: …")`; `draw(...)` returns 16; `open()`; state remembered by key on disk (`config/lab_ui/pickers.json`), the caller's default until first folded |
+| `Tooltip` | one per screen: `offer(control, mx, my)` / `offer(key, text)` while drawing, `draw(g, font, mx, my)` last; `Tooltip.render(...)` draws one now; delayed, clamped to the screen |
+| `EmptyState` | `new EmptyState(line).action(label, run)`; `draw(g, font, x, y, w, h, mx, my)` centred |
+| `Confirm` | `new Confirm(arm, key, label, verb, onConfirm)`; first press arms ("Press again to delete (4)"), second confirms; `escape()` and clicks elsewhere cancel; keyed `ConfirmArm` for row lists |
+| `CompactPicker` | `new CompactPicker(spec)`; current, recents, recommended (3 chips) and "more… N", which opens `PickerScreen` |
+| `PickerScreen` | `new PickerScreen(spec, parent)`: search (focused), Favourites, Tags / Compare placeholders, Recent strip, family rail, grouped cells or cards, detail pane, Pick / Favourite; names wrap to 2 lines (full name in a tooltip); cells and cards widen to fill the row; Enter picks; Esc clears a typed search, then goes back |
+| `PickerSpec` / `PickerEntry` | `PickerSpec.of(id, title, entries).current(id).recommended(ids).groupOrder(groups).layout(CELLS \| CARDS).noun(n).pickLabel(l).detailPreview(p).onPick(c)`, plus `onTags(hook)` / `onCompare(hook)`, which enable those chips (disabled placeholders until set); `PickerEntry.of(id, label).group(g).tags(t).swatch(rgb).icon(s).preview(p).subtitle(s).details(supplier).attr(k, v)` |
+| `PickerStore` | recents and favourites per picker id, and `CollapsibleSection` open states, in `config/lab_ui/pickers.json` (`PickerMemory`); prefix ids and keys with your mod id |
+| `ChatPager` (common) | `ChatPager.of(lines).pageSize(8).page(p).filter(f).pageCommand(n -> cmd).filterCommand(prefix).build()`: the page plus "…and K more · page 2/5 [‹ prev] [next ›] [filter…]" |
+| `TextModel`, `TextFieldView`, `TextKeys` | the kit text field (moved from Architect and Steward, unchanged) |
+| `Toasts` | `Toasts.install()` once per mod (one shared stack), `Toasts.push(level, title, body[, key, verb])`, `Toasts.avoid(rectSupplier)` |
 
 ## Migrating from AgentCraft Worlds, Architect or Steward
 
@@ -165,8 +199,13 @@ Steward's kit is a port of Architect's, which is a port of AgentCraft's. Both ma
 | `<mod>.client.ui.GuardedHud` | `dev.larattalabs.labui.client.ui.GuardedHud` |
 | `<mod>.client.hud.UiBits` | `dev.larattalabs.labui.client.hud.UiBits`: identical API |
 | `<mod>.ui.Guard` | `dev.larattalabs.labui.ui.Guard` |
+| `<mod>.ui.UiRules` (0.2.0) | `dev.larattalabs.labui.ui.UiRules`: identical API |
+| `<mod>.ui.ToastStack` (0.2.0) | `dev.larattalabs.labui.ui.ToastStack`: identical API |
+| `<mod>.client.text.TextModel`, `TextFieldView`, `TextKeys` (0.2.0) | `dev.larattalabs.labui.client.text.*`: identical API |
+| `<mod>.client.hud.Toasts` (0.2.0) | `dev.larattalabs.labui.client.hud.Toasts`: see "What changed in 0.2.0" |
+| Architect's `OwnedConfirm`, CrateScreen's Deconstruct two-press | `ConfirmArm` (keyed, pure) and the `Confirm` button |
 
-Here `<mod>` is `dev.larattalabs.architect` or `dev.larattalabs.steward`. Not in lab-ui, so keep your own: `HasParent`, `ScreenPause`, `OwnedConfirm`, `UiRules`, `ToastStack`.
+Here `<mod>` is `dev.larattalabs.architect` or `dev.larattalabs.steward`. Not in lab-ui, so keep your own: `HasParent` and `ScreenPause` (they read each mod's own environment).
 
 ### What changed in the move
 
@@ -192,6 +231,20 @@ Behaviour is unchanged apart from these seams.
 
 **`Guard`'s log line** starts with `lab_ui:` instead of `AgentCraft:`.
 
+### What changed in 0.2.0 (the moves from Architect and Steward)
+
+Both mods had the same copies of these files. Behaviour is unchanged apart from these seams.
+
+- **`TextModel`, `TextFieldView`, `TextKeys`, `UiRules`, `ToastStack`.** Only the package changed (`TextKeys` now calls
+  `dev.larattalabs.labui.ui.UiRules`), and the Javadoc of `UiRules` is worded for any mod.
+- **`Toasts`: one stack for every mod.** Fabric loads one lab-ui copy, so its toast list is shared. Call `Toasts.install()`
+  (idempotent) instead of registering your own HUD element: it registers `lab_ui:hud/toasts` once, guarded by
+  `Guard` kind `lab_ui.hud.toasts`. Registering `new Toasts()` yourself as well would draw every toast twice.
+- **`Toasts`: the placement-HUD dodge is a seam.** Architect's toasts stopped above `BuildPlacement.hudRect()`. Now each
+  mod adds its own rect with `Toasts.avoid(() -> rect)` (`{x, y, w, h}` or null), and the stack ends 4 px above the
+  highest one. Architect keeps its behaviour with `Toasts.avoid(BuildPlacement::hudRect)`; Steward adds nothing (it had
+  none). `lastText()`, `shown()` and `json()` are unchanged for QA.
+
 ### Not in lab-ui (yet)
 
 These are AgentCraft-shaped and have no small seam that would make them generic without changing behaviour.
@@ -201,7 +254,7 @@ These are AgentCraft-shaped and have no small seam that would make them generic 
 | `PlateStack`, `Nameplate`, `PlateLayout` | Bound to `AgentRenderState`, `AgentLife` and agent roles. |
 | `HudLayout`, toasts, `HudSounds` | Foreman listeners. |
 | `StatusMap`, `DisplayText` | Foreman task and decision types. |
-| `UiRules` | Agent targeting, lecterns and `Anchors` are mixed in with the generic Enter / two-press / `KeyRepeat` rules. Those generic rules are a 0.2.0 candidate. |
+| AgentCraft's `UiRules` | Agent targeting, lecterns and `Anchors` are mixed in with the generic rules. The generic Enter / two-press / `KeyRepeat` rules shipped in 0.2.0 as `dev.larattalabs.labui.ui.UiRules` (Architect's and Steward's copy). |
 
 ## Versioning
 

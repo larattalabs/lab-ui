@@ -21,12 +21,30 @@ src/client/java/dev/larattalabs/labui/client/monitor/DisplayDraw.java (upstream 
 src/client/java/dev/larattalabs/labui/client/monitor/ScreenStyle.java (upstream client/monitor/ScreenStyle, unchanged apart from removing name())
 src/client/java/dev/larattalabs/labui/client/world/SpeechBubble.java (upstream client/agents/SpeechBubble, Addressees seam added)
 
+Files moved in from Architect and Steward in 0.2.0 (identical in both mods), derived from upstream AgentCraft
+---------------------------------------------------------------------------------------------------------
+src/client/java/dev/larattalabs/labui/client/text/TextModel.java      (upstream client/console/TextModel, via Architect)
+src/client/java/dev/larattalabs/labui/client/text/TextFieldView.java  (upstream client/console/TextFieldView, via Architect)
+src/client/java/dev/larattalabs/labui/client/text/TextKeys.java       (upstream client/console/TextKeys, via Architect)
+src/client/java/dev/larattalabs/labui/client/hud/Toasts.java          (upstream client/hud/Toasts, via Architect; install() and avoid() seams added)
+
+Files moved in from Architect and Steward in 0.2.0, written in the fork (AgentCraft Worlds, then Architect)
+---------------------------------------------------------------------------------------------------------
+src/main/java/dev/larattalabs/labui/ui/ToastStack.java      and src/test/.../ui/ToastStackTest.java   (fork hud/ToastStack)
+src/main/java/dev/larattalabs/labui/ui/UiRules.java         and src/test/.../ui/UiRulesTest.java      (fork ui/UiRules, generic part)
+
 Files written in the fork (Laratta Labs, AgentCraft Worlds changes)
 ------------------------------------------------------------------
 src/main/java/dev/larattalabs/labui/ui/TextDepth.java       and src/test/.../ui/TextDepthTest.java
 src/main/java/dev/larattalabs/labui/ui/LeaderGaps.java      and src/test/.../ui/LeaderGapsTest.java
 src/main/java/dev/larattalabs/labui/ui/Guard.java           and src/test/.../ui/GuardTest.java
 src/main/java/dev/larattalabs/labui/LabUi.java              (new for lab-ui)
+
+Files written for lab-ui (Laratta Labs)
+---------------------------------------
+The 0.2.0 components, all new: src/main/java/dev/larattalabs/labui/ui/{ListNav, ScrollMath, TextMatch, ChipFlow,
+ConfirmArm, TooltipMath, PickerMemory, SectionGrid, PickerModel, PageSlice, ChatPager}.java and their tests;
+src/client/java/dev/larattalabs/labui/client/widget/*.java and client/picker/*.java; the UiStyle semantic accessors.
 
 Art and style data (upstream AgentCraft "Warm Studio" art track)
 ----------------------------------------------------------------
@@ -38,4 +56,4 @@ src/main/resources/assets/lab_ui/gui/kit.json
 src/main/resources/assets/lab_ui/gui/ui-style.json
 src/main/resources/assets/lab_ui/palette.json
     Upstream's files plus the fork's additions (the ines, bram and cass cast colours, an auburn ramp,
-    re-measured contrast figures).
+    re-measured contrast figures); ui-style.json's "semantic" block is a lab-ui 0.2.0 addition.

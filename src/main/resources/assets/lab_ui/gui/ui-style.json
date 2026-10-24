@@ -230,5 +230,26 @@
     ],
     "pulse_ms": 1200,
     "caret_blink_ms": 500
+  },
+  "semantic": {
+    "_note": "lab-ui 0.2.0 semantic tokens (UiStyle.error() etc.). Text tokens are >= 4.5:1 on paper.bg and paper.inset; error, ok, muted and focus_ring are the colours UiBits already draws.",
+    "error": "#9A2F2B",
+    "warn": "#85570F",
+    "ok": "#455746",
+    "muted": "#655E55",
+    "selected": "#F7D9C9",
+    "selected_edge": "#B4553A",
+    "focus_ring": "#C9A227",
+    "row_hover": "#FFFAF0",
+    "row_hover_edge": "#C5B398",
+    "rule": "#D6C9B4",
+    "chip": "#E9E1D3",
+    "chip_edge": "#A89378",
+    "field": "#FFFDF8",
+    "title_bar": "#3B2A20",
+    "title_text": "#F4EFE6",
+    "danger": "#A63A2D",
+    "danger_text": "#FFFBF4",
+    "link": "#874431"
   }
 }
