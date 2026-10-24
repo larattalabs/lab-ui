@@ -65,6 +65,93 @@ public final class UiStyle {
 		return color("status." + family, 0xFF9C9488);
 	}
 
+	// ------------------------------------------------------------------ semantic tokens (0.2.0; ui-style.json "semantic")
+
+	/** Error text on paper (= {@code UiBits.errorText()}, 6.5:1 on cream). */
+	public static int error() {
+		return color("semantic.error", 0xFF9A2F2B);
+	}
+
+	/** Warning text on paper (5.4:1 on cream, 4.8:1 on the inset). */
+	public static int warn() {
+		return color("semantic.warn", 0xFF85570F);
+	}
+
+	/** Positive text on paper (= {@code UiBits.okText()}). */
+	public static int ok() {
+		return color("semantic.ok", 0xFF455746);
+	}
+
+	/** Secondary text on paper (= {@code UiBits.muted()}). */
+	public static int mutedText() {
+		return color("semantic.muted", 0xFF655E55);
+	}
+
+	/** Fill of a selected row, cell or chip (with {@link #selectedEdge()} as its border or left bar). */
+	public static int selected() {
+		return color("semantic.selected", 0xFFF7D9C9);
+	}
+
+	public static int selectedEdge() {
+		return color("semantic.selected_edge", CLAY_DARK);
+	}
+
+	/** The keyboard focus ring (= {@code UiBits.focusRing}'s brass). */
+	public static int focusRing() {
+		return color("semantic.focus_ring", BRASS);
+	}
+
+	/** Fill of a hovered row or cell (with {@link #rowHoverEdge()} as its border). */
+	public static int rowHover() {
+		return color("semantic.row_hover", 0xFFFFFAF0);
+	}
+
+	public static int rowHoverEdge() {
+		return color("semantic.row_hover_edge", 0xFFC5B398);
+	}
+
+	/** Hairline between areas of a panel. */
+	public static int rule() {
+		return color("semantic.rule", 0xFFD6C9B4);
+	}
+
+	/** Chip body and edge. */
+	public static int chip() {
+		return color("semantic.chip", PAPER);
+	}
+
+	public static int chipEdge() {
+		return color("semantic.chip_edge", 0xFFA89378);
+	}
+
+	/** Search / text field body drawn by fills. */
+	public static int field() {
+		return color("semantic.field", 0xFFFFFDF8);
+	}
+
+	/** Full-screen title bar (walnut) and its text (cream). */
+	public static int titleBar() {
+		return color("semantic.title_bar", WALNUT);
+	}
+
+	public static int titleText() {
+		return color("semantic.title_text", CREAM);
+	}
+
+	/** An armed destructive control's fill and its label (6.2:1). */
+	public static int danger() {
+		return color("semantic.danger", 0xFFA63A2D);
+	}
+
+	public static int dangerText() {
+		return color("semantic.danger_text", 0xFFFFFBF4);
+	}
+
+	/** Section headings and links on paper (= {@code paper.link}). */
+	public static int link() {
+		return color("semantic.link", 0xFF874431);
+	}
+
 	public static int metric(String path, int fallback) {
 		Double d = NUMBERS.get(path);
 		return d == null ? fallback : (int) Math.round(d);
