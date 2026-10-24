@@ -37,6 +37,32 @@ dependencies {
 	testRuntimeOnly "org.junit.platform:junit-platform-launcher"
 }
 
+// A consumer that includeBuild()s a lab-ui checkout (a composite build) compiles against the "classes" secondary variant
+// of apiElements / runtimeElements, which the java plugin fills with the main source set only: the split client classes
+// (dev.larattalabs.labui.client.*) were missing there, though the jar has them. Add the client classes (and, at runtime,
+// the client resources) to those variants, so a composite consumer resolves the same classes as the published jar.
+// Consumers that force the jar variant (Architect's and AgentCraft's build.gradle) are unaffected.
+["apiElements", "runtimeElements"].each { name ->
+	configurations.named(name) {
+		outgoing.variants.named("classes") {
+			sourceSets.client.output.classesDirs.each { dir ->
+				artifact(dir) {
+					type = ArtifactTypeDefinition.JVM_CLASS_DIRECTORY
+					builtBy(sourceSets.client.output)
+				}
+			}
+		}
+	}
+}
+configurations.named("runtimeElements") {
+	outgoing.variants.named("resources") {
+		artifact(sourceSets.client.output.resourcesDir) {
+			type = ArtifactTypeDefinition.JVM_RESOURCES_DIRECTORY
+			builtBy(sourceSets.client.output)
+		}
+	}
+}
+
 test {
 	useJUnitPlatform()
 	testLogging {

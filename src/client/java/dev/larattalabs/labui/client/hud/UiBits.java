@@ -95,7 +95,7 @@ public final class UiBits {
 		for (int i = 0; i + 1 < keyThenVerb.length; i += 2) {
 			cx += keycap(g, font, keyThenVerb[i], cx, y) + 3;
 			String verb = keyThenVerb[i + 1];
-			g.text(font, verb, cx, y + 2, onDark ? activityOnInk() : muted(), false);
+			g.text(font, verb, cx, y + 2, onDark ? UiStyle.OnDark.muted() : muted(), false);
 			cx += font.width(verb) + 9;
 		}
 		return cx - x - 9;
@@ -175,7 +175,7 @@ public final class UiBits {
 
 	/** A 2 px brass focus ring just outside a w x h rect (corners left open, so it reads as rounded), with a walnut hairline outside it. */
 	public static void focusRing(GuiGraphicsExtractor g, int x, int y, int w, int h) {
-		int brass = UiStyle.BRASS;
+		int brass = UiStyle.focusRing();
 		int edge = UiStyle.withAlpha(UiStyle.WALNUT, 150);
 		// walnut hairline (outermost), then the 2 px brass band
 		g.fill(x - 2, y - 4, x + w + 2, y - 3, edge);

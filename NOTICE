@@ -26,11 +26,11 @@ Files moved in from Architect and Steward in 0.2.0 (identical in both mods), der
 src/client/java/dev/larattalabs/labui/client/text/TextModel.java      (upstream client/console/TextModel, via Architect)
 src/client/java/dev/larattalabs/labui/client/text/TextFieldView.java  (upstream client/console/TextFieldView, via Architect)
 src/client/java/dev/larattalabs/labui/client/text/TextKeys.java       (upstream client/console/TextKeys, via Architect)
-src/client/java/dev/larattalabs/labui/client/hud/Toasts.java          (upstream client/hud/Toasts, via Architect; install() and avoid() seams added)
+src/client/java/dev/larattalabs/labui/client/hud/Toasts.java          (upstream client/hud/Toasts, via Architect; install() and avoid() seams added; 0.3.0: the HudZones element and Toasts.Spec)
 
 Files moved in from Architect and Steward in 0.2.0, written in the fork (AgentCraft Worlds, then Architect)
 ---------------------------------------------------------------------------------------------------------
-src/main/java/dev/larattalabs/labui/ui/ToastStack.java      and src/test/.../ui/ToastStackTest.java   (fork hud/ToastStack)
+src/main/java/dev/larattalabs/labui/ui/ToastStack.java      and src/test/.../ui/ToastStackTest.java   (fork hud/ToastStack; 0.3.0: fitTitle and clipBody, from Steward)
 src/main/java/dev/larattalabs/labui/ui/UiRules.java         and src/test/.../ui/UiRulesTest.java      (fork ui/UiRules, generic part)
 
 Files written in the fork (Laratta Labs, AgentCraft Worlds changes)

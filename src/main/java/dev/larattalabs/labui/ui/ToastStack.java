@@ -109,6 +109,79 @@ public final class ToastStack {
 		return new Layout(List.copyOf(shown), List.copyOf(ys), hidden, hiddenNeed, moreY);
 	}
 
+	/** A layout whose first toast may be drawn compact (its title row only, 0.3.0): see {@link #layoutNeedFirst}. */
+	public record Fitted(Layout layout, boolean compactFirst) {
+	}
+
+	/**
+	 * {@link #layout}, except that a need-you toast is never folded away entirely (0.3.0): when no toast fits but the first
+	 * one (in display order) needs the player and {@code compactH} (its title row) fits, it is drawn compact at {@code top},
+	 * and the rest count on the "+N more" line under it when that fits. Info toasts still fold into "+N more".
+	 */
+	public static Fitted layoutNeedFirst(List<Item> items, int top, int limit, int gap, int maxShown, int moreH, int compactH) {
+		Layout l = layout(items, top, limit, gap, maxShown, moreH);
+		if (!l.shown().isEmpty() || items.isEmpty() || !items.get(0).need() || top + compactH > limit) {
+			return new Fitted(l, false);
+		}
+		int hiddenNeed = -1;
+		for (Item it : items) {
+			if (it.need()) {
+				hiddenNeed++;
+			}
+		}
+		int hidden = items.size() - 1;
+		int moreY = hidden > 0 && top + compactH + gap + moreH <= limit ? top + compactH + gap : -1;
+		return new Fitted(new Layout(List.of(0), List.of(top), hidden, hiddenNeed, moreY), true);
+	}
+
+	/** Text measuring for {@link #fitTitle} and {@link #clipBody} (the client passes the font's; tests a fixed-width one). */
+	public interface Measure {
+		int width(String s);
+
+		/** {@code s} cut to {@code maxWidth} with an ellipsis when it is wider ({@code TextUtil.ellipsize}). */
+		String ellipsize(String s, int maxWidth);
+	}
+
+	/** The least room the subject keeps when {@link #fitTitle} shortens it. */
+	public static final int SUBJECT_MIN = 30;
+
+	/**
+	 * A toast title fitted to {@code w} (0.3.0, from Steward's toasts). With a {@code subject} (a prefix of the title, e.g. a
+	 * settlement's name in "Stilt Swamp Fishing Village needs you"), the subject is shortened first and the rest stays whole:
+	 * "Stilt Swamp Fishing… needs you", not "Stilt Swamp Fishing Village nee…". Without one, or when the subject is not a
+	 * prefix, or the rest leaves the subject less than {@link #SUBJECT_MIN} px, it is the plain ellipsis.
+	 */
+	public static String fitTitle(String title, @org.jspecify.annotations.Nullable String subject, int w, Measure m) {
+		if (m.width(title) <= w || subject == null || subject.isEmpty() || !title.startsWith(subject) || subject.length() == title.length()) {
+			return m.ellipsize(title, w);
+		}
+		String tail = title.substring(subject.length());
+		int room = w - m.width(tail);
+		if (room < SUBJECT_MIN) {
+			return m.ellipsize(title, w);
+		}
+		return m.ellipsize(subject, room) + tail;
+	}
+
+	/** Body lines (1-3) a toast shows at most (0.3.0); out of range is clamped. */
+	public static int bodyLines(int maxBodyLines) {
+		return Math.max(1, Math.min(3, maxBodyLines));
+	}
+
+	/**
+	 * A toast body's wrapped lines cut to {@code max}: the first {@code max - 1} as they are, then the next line with " …"
+	 * ellipsized to {@code w} (what lab-ui's toasts did for two lines since 0.2.0, and Steward's for three).
+	 */
+	public static List<String> clipBody(List<String> wrapped, int max, int w, Measure m) {
+		int n = bodyLines(max);
+		if (wrapped.size() <= n) {
+			return wrapped;
+		}
+		List<String> out = new ArrayList<>(wrapped.subList(0, n - 1));
+		out.add(m.ellipsize(wrapped.get(n - 1) + " …", w));
+		return out;
+	}
+
 	/** The "+N more" line: "+2 more", "+3 more · 1 needs you". */
 	public static String moreText(int hidden, int hiddenNeed) {
 		String s = "+" + hidden + " more";

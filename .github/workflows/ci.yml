@@ -25,6 +25,8 @@ jobs:
             dev/larattalabs/labui/client/ui/WorldUi.class dev/larattalabs/labui/client/ui/Kit.class \
             dev/larattalabs/labui/ui/Guard.class dev/larattalabs/labui/ui/ChatPager.class \
             dev/larattalabs/labui/client/picker/PickerScreen.class dev/larattalabs/labui/client/widget/ScrollList.class \
+            dev/larattalabs/labui/client/hud/HudZones.class dev/larattalabs/labui/ui/HudLayout.class \
+            dev/larattalabs/labui/mixin/client/ToastManagerAccess.class lab_ui.client.mixins.json \
             assets/lab_ui/gui/kit.json assets/lab_ui/gui/ui-style.json assets/lab_ui/palette.json \
             assets/lab_ui/textures/gui/sprites/kit/panel_paper.png assets/lab_ui/textures/gui/sprites/kit/panel_paper.png.mcmeta; do
             echo "$l" | grep -q " $f\$" || { echo "missing in $j: $f"; exit 1; }

@@ -202,10 +202,10 @@ public final class SpeechBubble {
 
 	private static int toColor(@Nullable String to, Addressees addressees) {
 		if (to == null || to.equals("user") || to.equals("all") || to.isEmpty()) {
-			return UiStyle.color("paper.link", UiStyle.CLAY_DARK);
+			return UiStyle.link();
 		}
 		Integer c = addressees.color(to);
-		return c != null ? c : UiStyle.color("paper.link", UiStyle.CLAY_DARK);
+		return c != null ? c : UiStyle.link();
 	}
 
 	/**

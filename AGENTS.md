@@ -20,7 +20,8 @@ installed next to the one that shipped it.
 ## Build, test, publish
 
 - `export JAVA_HOME=/opt/homebrew/opt/openjdk@25 GRADLE_USER_HOME=$PWD/.gradle-home`. In a new checkout or worktree, first
-  `cp -c -R ~/Developer/LarattaLabs/architect-mc/.gradle-home .` (an APFS clone, cheap), then `./gradlew build --offline`.
+  `cp -c -R ~/Developer/LarattaLabs/architect-mc/.gradle-home . && rm -f .gradle-home/daemon/*/registry.bin*` (an APFS clone,
+  cheap; the copied daemon registry would otherwise reach the original's live daemons; never run `./gradlew --stop`), then `./gradlew build --offline`.
 - `./gradlew build` compiles, runs the unit tests (every pure class in `dev.larattalabs.labui.ui`) and builds the jar. CI (`ci.yml`) also
   checks the jar carries the classes, sprites, style files, LICENSE and NOTICE.
 - `./gradlew publishToMavenLocal` for testing a consumer against an unreleased version (`mavenLocal()` in the consumer).

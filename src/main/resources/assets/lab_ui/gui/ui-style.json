@@ -251,5 +251,42 @@
     "danger": "#A63A2D",
     "danger_text": "#FFFBF4",
     "link": "#874431"
+  },
+  "semantic_on_dark": {
+    "_note": "lab-ui 0.3.0 on-dark tokens (UiStyle.OnDark.*): text and marks on dark surfaces (the HUD ink panel, nameplates, dark monitors, the board slate). Text tokens are >= 4.5:1 on every surface in semantic_on_dark_contrast._surfaces, composited as drawn (the HUD panel is 90% opaque, so it is also checked over a white world); focus and bar are marks (>= 3:1).",
+    "text": "#F4EFE6",
+    "muted": "#C4BDB2",
+    "error": "#F2948B",
+    "warn": "#F2B66A",
+    "ok": "#B8CBB3",
+    "accent": "#80D2CD",
+    "selected": "#E6C659",
+    "focus": "#C9A227",
+    "panel": "#2B2927",
+    "panel_edge": "#4A4642",
+    "rule": "#4A423B",
+    "bar": "#2FA3A0"
+  },
+  "semantic_on_dark_contrast": {
+    "_surfaces": {
+      "hud_panel": "#2B2927",
+      "hud_panel_over_white": "#2B2927@0.9006/#FFFFFF",
+      "hud_panel_over_sky": "#2B2927@0.9006/#78A7FF",
+      "nameplate_over_white": "#1F1E1D@0.8627/#FFFFFF",
+      "monitor_dark_bg": "#26221F",
+      "monitor_dark_bg_top": "#2E2925",
+      "board_slate": "#3B2A20"
+    },
+    "_min_text": 4.5,
+    "_min_mark": 3.0,
+    "text": 9.29,
+    "muted": 5.71,
+    "error": 4.75,
+    "warn": 5.91,
+    "ok": 6.2,
+    "accent": 6.09,
+    "selected": 6.38,
+    "focus": 4.4,
+    "bar": 3.48
   }
 }

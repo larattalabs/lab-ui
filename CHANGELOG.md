@@ -1,5 +1,27 @@
 # Changelog
 
+## 0.3.0
+
+Additive: every 0.2.0 class and method is unchanged. Consumers move their range to `>=0.3.0 <0.4.0`.
+
+**On-dark tokens.** `UiStyle.OnDark` (`ui-style.json` `semantic_on_dark`): text, muted, error, warn, ok, accent, selected,
+focus, panel, panel edge, rule, bar, track. Every text token is at least 4.5:1 on the HUD ink panel (also over a white
+world), nameplates, dark monitors and the board slate; `OnDarkContrastTest` checks it from the JSON (`Contrast`).
+
+**HUD zones.** `HudZones` + `HudZone`: mods register HUD pieces into `TOP_LEFT`, `TOP_CENTER`, `TOP_RIGHT_TOASTS`, `LEFT`,
+`RIGHT` and `BOTTOM_CENTER` with a priority and a size that may shrink or be hidden; one `lab_ui:hud/zones` element lays
+them out (pure `HudLayout`, `ZoneStack`) clear of each other and of vanilla's boss bars, effect icons, toasts and "Now
+playing" (`VanillaHud`, `VanillaHudMath`; read through `lab_ui.client.mixins.json`, three non-required accessors).
+
+**Toasts.** The stack is the toast zone's element (below vanilla's toasts and effects); `Toasts.Spec` and `push(Spec)` add
+up to three body lines and a title subject shortened first (`ToastStack.fitTitle`, `clipBody`). `avoid` is unchanged in
+meaning. A need-you toast is never folded away: the stack claims its title row ahead of the top-centre
+status pieces, which collapse first, and draws it compact when space is short (`ToastStack.layoutNeedFirst`).
+
+**Build.** The client classes are in the variant a composite (`includeBuild`) consumer compiles against.
+
+README.md "What changed in 0.3.0" lists the seams.
+
 ## 0.2.0
 
 Additive: every 0.1.0 class and method is unchanged. Consumers move their range to `>=0.2.0 <0.3.0`.
