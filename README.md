@@ -153,14 +153,14 @@ belongs to the screen: set `focused(true)` on the control that Enter / Space sho
 | `Chip` | `new Chip(label, onPress).selected(b).kind(NORMAL \| MORE).swatch(rgb).icon(stackSupplier)`; 18 px; `draw(g, font, x, y, mx, my)` returns the width |
 | `ChipRow` | `new ChipRow(chips).maxRows(n).onMore(hiddenCount -> …)`; `draw(g, font, x, y, w, mx, my)` returns the height; overflow folds into "+N" (tooltip lists the rest) |
 | `ScrollList<T>` | `new ScrollList<>(rowH, painter).filter(text, placeholder).empty(line).onActivate(c).onSelect(c).items(list)`; `draw(g, font, x, y, w, h, mx, my)`; wheel, draggable bar, arrows, Home/End, PgUp/PgDn, Enter / double click |
-| `CollapsibleSection` | `new CollapsibleSection(key, title, defaultOpen).summary("8 on: …")`; `draw(...)` returns 16; `open()`; state remembered by key for the session |
+| `CollapsibleSection` | `new CollapsibleSection(key, title, defaultOpen).summary("8 on: …")`; `draw(...)` returns 16; `open()`; state remembered by key on disk (`config/lab_ui/pickers.json`), the caller's default until first folded |
 | `Tooltip` | one per screen: `offer(control, mx, my)` / `offer(key, text)` while drawing, `draw(g, font, mx, my)` last; `Tooltip.render(...)` draws one now; delayed, clamped to the screen |
 | `EmptyState` | `new EmptyState(line).action(label, run)`; `draw(g, font, x, y, w, h, mx, my)` centred |
 | `Confirm` | `new Confirm(arm, key, label, verb, onConfirm)`; first press arms ("Press again to delete (4)"), second confirms; `escape()` and clicks elsewhere cancel; keyed `ConfirmArm` for row lists |
 | `CompactPicker` | `new CompactPicker(spec)`; current, recents, recommended (3 chips) and "more… N", which opens `PickerScreen` |
-| `PickerScreen` | `new PickerScreen(spec, parent)`: search (focused), Favourites, Tags / Compare placeholders, Recent strip, family rail, grouped cells or cards, detail pane, Pick / Favourite; Enter picks, Esc goes back |
+| `PickerScreen` | `new PickerScreen(spec, parent)`: search (focused), Favourites, Tags / Compare placeholders, Recent strip, family rail, grouped cells or cards, detail pane, Pick / Favourite; names wrap to 2 lines (full name in a tooltip); cells and cards widen to fill the row; Enter picks; Esc clears a typed search, then goes back |
 | `PickerSpec` / `PickerEntry` | `PickerSpec.of(id, title, entries).current(id).recommended(ids).groupOrder(groups).layout(CELLS \| CARDS).noun(n).pickLabel(l).detailPreview(p).onPick(c)`, plus `onTags(hook)` / `onCompare(hook)`, which enable those chips (disabled placeholders until set); `PickerEntry.of(id, label).group(g).tags(t).swatch(rgb).icon(s).preview(p).subtitle(s).details(supplier).attr(k, v)` |
-| `PickerStore` | recents and favourites per picker id in `config/lab_ui/pickers.json` (`PickerMemory`); prefix ids with your mod id |
+| `PickerStore` | recents and favourites per picker id, and `CollapsibleSection` open states, in `config/lab_ui/pickers.json` (`PickerMemory`); prefix ids and keys with your mod id |
 | `ChatPager` (common) | `ChatPager.of(lines).pageSize(8).page(p).filter(f).pageCommand(n -> cmd).filterCommand(prefix).build()`: the page plus "…and K more · page 2/5 [‹ prev] [next ›] [filter…]" |
 | `TextModel`, `TextFieldView`, `TextKeys` | the kit text field (moved from Architect and Steward, unchanged) |
 | `Toasts` | `Toasts.install()` once per mod (one shared stack), `Toasts.push(level, title, body[, key, verb])`, `Toasts.avoid(rectSupplier)` |

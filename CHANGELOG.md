@@ -9,10 +9,11 @@ Additive: every 0.1.0 class and method is unchanged. Consumers move their range 
 - `Button` (the one kit button, 18 px minimum) and `Chip` (selected, more, disabled and focus states; swatch or item lead);
 - `ChipRow`, with a hookable "+N" overflow;
 - `ScrollList`: fixed rows, wheel, draggable scrollbar, keys, filter line, empty state;
-- `CollapsibleSection`, `Tooltip`, `EmptyState`, and `Confirm` (a two-press arm with a countdown, replacing
+- `CollapsibleSection` (open state kept on disk by key), `Tooltip`, `EmptyState`, and `Confirm` (a two-press arm with a countdown, replacing
   Architect's OwnedConfirm and CrateScreen's Deconstruct patterns);
 - `CompactPicker` plus the full-screen `PickerScreen` (search, family rail, grouped cells or cards, detail pane,
-  favourites and recents per picker id in `config/lab_ui/pickers.json`);
+  favourites and recents per picker id in `config/lab_ui/pickers.json`; names wrap to two lines with the full name in
+  a tooltip; cells and cards widen to fill the row; Esc clears a typed search before going back);
 - `ChatPager` (common code): chat lists in pages with "…and K more" and clickable [prev]/[next]/[filter…].
 
 **Tokens.** `UiStyle.error()`, `warn()`, `ok()`, `mutedText()`, `selected()`, `focusRing()`, `rowHover()` and the

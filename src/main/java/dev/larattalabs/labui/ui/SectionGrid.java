@@ -61,6 +61,21 @@ public final class SectionGrid {
 		}
 	}
 
+	/**
+	 * Columns for a grid {@code inner} px wide: as many as fit at {@code minW} each, but never more than the largest
+	 * section holds, so a sparse grid gets fewer, wider cells instead of an empty right side. At least 1.
+	 */
+	public static int columns(int inner, int gap, int minW, int largestSection) {
+		int fit = Math.max(1, (inner + gap) / (Math.max(1, minW) + gap));
+		return Math.max(1, Math.min(fit, Math.max(1, largestSection)));
+	}
+
+	/** The cell width for {@code cols} columns filling {@code inner} px, capped at {@code maxW}. */
+	public static int cellWidth(int inner, int gap, int cols, int maxW) {
+		int c = Math.max(1, cols);
+		return Math.max(1, Math.min(maxW, (inner - gap * (c - 1)) / c));
+	}
+
 	public int count() {
 		return count;
 	}

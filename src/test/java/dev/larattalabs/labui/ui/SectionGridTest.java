@@ -47,6 +47,16 @@ class SectionGridTest {
 	}
 
 	@Test
+	void sparseGridsGetFewerWiderColumns() {
+		assertEquals(6, SectionGrid.columns(600, 4, 96, 12), "a full grid: as many as fit");
+		assertEquals(3, SectionGrid.columns(600, 4, 96, 3), "sections of at most 3: three wide columns");
+		assertEquals(1, SectionGrid.columns(50, 4, 96, 12), "never fewer than one");
+		assertEquals(1, SectionGrid.columns(600, 4, 96, 0));
+		assertEquals(197, SectionGrid.cellWidth(600, 4, 3, 240));
+		assertEquals(160, SectionGrid.cellWidth(600, 4, 2, 160), "capped");
+	}
+
+	@Test
 	void nothingSelected() {
 		assertEquals(0, g.move(-1, Key.DOWN, 1));
 		assertEquals(6, g.move(-1, Key.END, 1));

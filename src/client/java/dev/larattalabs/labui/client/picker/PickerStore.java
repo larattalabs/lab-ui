@@ -11,7 +11,8 @@ import net.fabricmc.loader.api.FabricLoader;
 import org.jspecify.annotations.Nullable;
 
 /**
- * Recents and favourites of every picker, in {@code config/lab_ui/pickers.json} ({@link PickerMemory}). Loaded on first
+ * Recents and favourites of every picker, and the open state of every {@code CollapsibleSection}, in
+ * {@code config/lab_ui/pickers.json} ({@link PickerMemory}). Loaded on first
  * use, written (atomically) after each change. Client thread.
  */
 public final class PickerStore {
@@ -43,6 +44,12 @@ public final class PickerStore {
 	/** Records a pick and saves. */
 	public static void used(String picker, String id) {
 		memory().used(picker, id);
+		save();
+	}
+
+	/** Remembers a collapsible section's open state and saves. */
+	public static void section(String key, boolean open) {
+		memory().section(key, open);
 		save();
 	}
 

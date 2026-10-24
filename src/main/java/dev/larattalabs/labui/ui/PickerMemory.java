@@ -13,7 +13,7 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Recents and favourites per picker id (pure, unit-tested in {@code PickerMemoryTest}); the client keeps one in
+ * Recents and favourites per picker id, and the open state of collapsible sections by key (pure, unit-tested in {@code PickerMemoryTest}); the client keeps one in
  * {@code config/lab_ui/pickers.json}. Picker ids are shared by every mod (one lab-ui copy at runtime), so prefix them with
  * your mod id: {@code architect.palette.roof}. Recents are newest first, without repeats, at most {@link #MAX_RECENTS}.
  */
@@ -21,6 +21,16 @@ public final class PickerMemory {
 	public static final int MAX_RECENTS = 8;
 	private final Map<String, List<String>> recents = new LinkedHashMap<>();
 	private final Map<String, Set<String>> favourites = new LinkedHashMap<>();
+	private final Map<String, Boolean> sections = new LinkedHashMap<>();
+
+	/** A collapsible section's remembered open state, or null (never toggled: use the caller's default). */
+	public Boolean section(String key) {
+		return sections.get(key);
+	}
+
+	public void section(String key, boolean open) {
+		sections.put(key, open);
+	}
 
 	public List<String> recents(String picker) {
 		return Collections.unmodifiableList(recents.getOrDefault(picker, List.of()));
@@ -76,9 +86,12 @@ public final class PickerMemory {
 			p.add("favourites", f);
 			pickers.add(id, p);
 		}
+		JsonObject secs = new JsonObject();
+		sections.forEach(secs::addProperty);
 		JsonObject root = new JsonObject();
 		root.addProperty("version", 1);
 		root.add("pickers", pickers);
+		root.add("sections", secs);
 		return root.toString();
 	}
 
@@ -86,10 +99,20 @@ public final class PickerMemory {
 	public static PickerMemory fromJson(String json) {
 		PickerMemory m = new PickerMemory();
 		try {
-			JsonObject pickers = JsonParser.parseString(json).getAsJsonObject().getAsJsonObject("pickers");
-			if (pickers == null) {
+			JsonObject root = JsonParser.parseString(json).getAsJsonObject();
+			JsonElement secs = root.get("sections");
+			if (secs != null && secs.isJsonObject()) {
+				for (var e : secs.getAsJsonObject().entrySet()) {
+					if (e.getValue().isJsonPrimitive() && e.getValue().getAsJsonPrimitive().isBoolean()) {
+						m.section(e.getKey(), e.getValue().getAsBoolean());
+					}
+				}
+			}
+			JsonElement pk = root.get("pickers");
+			if (pk == null || !pk.isJsonObject()) {
 				return m;
 			}
+			JsonObject pickers = pk.getAsJsonObject();
 			for (var e : pickers.entrySet()) {
 				if (!e.getValue().isJsonObject()) {
 					continue;

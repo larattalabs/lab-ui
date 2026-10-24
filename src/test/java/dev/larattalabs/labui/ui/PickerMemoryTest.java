@@ -47,6 +47,18 @@ class PickerMemoryTest {
 	}
 
 	@Test
+	void sectionStateRoundTrips() {
+		PickerMemory m = new PickerMemory();
+		assertEquals(null, m.section("architect.design.features"));
+		m.section("architect.design.features", true);
+		m.section("architect.design.rules", false);
+		PickerMemory back = PickerMemory.fromJson(m.toJson());
+		assertEquals(Boolean.TRUE, back.section("architect.design.features"));
+		assertEquals(Boolean.FALSE, back.section("architect.design.rules"));
+		assertEquals(null, PickerMemory.fromJson("{\"sections\": {\"x\": \"yes\"}}").section("x"), "only booleans");
+	}
+
+	@Test
 	void garbageReadsAsEmpty() {
 		assertEquals(List.of(), PickerMemory.fromJson("not json").recents("x"));
 		assertEquals(List.of(), PickerMemory.fromJson("{\"pickers\": {\"x\": {\"recent\": [1, \"ok\"]}}}").recents("y"));

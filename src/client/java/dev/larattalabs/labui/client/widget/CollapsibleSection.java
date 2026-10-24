@@ -2,16 +2,16 @@ package dev.larattalabs.labui.client.widget;
 
 import dev.larattalabs.labui.client.ui.TextUtil;
 import dev.larattalabs.labui.client.ui.UiStyle;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import dev.larattalabs.labui.client.picker.PickerStore;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import org.jspecify.annotations.Nullable;
 
 /**
  * A section header with a chevron, a title and a muted count / summary ("· 8 on: chimney, porch, +5"); a click, or Enter
- * / Space while focused, folds it. Its open state is remembered by key for the session (shared by every screen and mod
- * that uses the key, so prefix keys with your mod id: {@code architect.design.features}). Defaults are the caller's.
+ * / Space while focused, folds it. Its open state is remembered by key on disk ({@code config/lab_ui/pickers.json}; shared
+ * by every screen and mod that uses the key, so prefix keys with your mod id: {@code architect.design.features}). Until
+ * the player first folds it, the caller's default applies.
  *
  * <pre>
  * int y0 = y;
@@ -23,7 +23,6 @@ public final class CollapsibleSection extends Control {
 	public static final int HEADER_H = 16;
 	/** Indent for a section's content, under the title. */
 	public static final int INDENT = 12;
-	private static final Map<String, Boolean> OPEN = new ConcurrentHashMap<>();
 	private final String key;
 	private final boolean defaultOpen;
 	private String title;
@@ -37,11 +36,13 @@ public final class CollapsibleSection extends Control {
 	}
 
 	public static boolean isOpen(String key, boolean defaultOpen) {
-		return OPEN.getOrDefault(key, defaultOpen);
+		Boolean b = PickerStore.memory().section(key);
+		return b == null ? defaultOpen : b;
 	}
 
+	/** Remembers the state on disk ({@code config/lab_ui/pickers.json}, with the pickers' memory). */
 	public static void setOpen(String key, boolean open) {
-		OPEN.put(key, open);
+		PickerStore.section(key, open);
 	}
 
 	public String key() {

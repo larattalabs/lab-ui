@@ -38,7 +38,7 @@ import org.jspecify.annotations.Nullable;
  * detail pane on the right (big preview, name, id, the caller's preview, detail lines, Pick and Favourite). Hover or the
  * keyboard selection fills the detail pane.
  *
- * <p>Keys: typing searches; Down from the search box enters the grid; arrows move through it (Up from its first row goes
+ * <p>Keys: typing searches (Esc clears a typed search first); Down from the search box enters the grid; arrows move through it (Up from its first row goes
  * back to search); Tab cycles search, grid and rail; Enter picks; F toggles the favourite; Esc goes back to the parent
  * screen. Recents and favourites persist per picker id ({@link PickerStore}). It pauses when its parent does.
  */
@@ -49,6 +49,10 @@ public class PickerScreen extends Screen {
 	private static final int HEAD_H = 13;
 	private static final int GAP = 4;
 	private static final int BAR_W = 6;
+	private static final int CELL_MIN_W = 76;
+	private static final int CELL_MAX_W = 150;
+	private static final int CARD_MIN_W = 110;
+	private static final int CARD_MAX_W = 240;
 
 	private enum Focus {
 		SEARCH, GRID, RAIL
@@ -75,6 +79,9 @@ public class PickerScreen extends Screen {
 	private int lastMx = Integer.MIN_VALUE;
 	private int lastMy = Integer.MIN_VALUE;
 	private boolean keyLast = true;
+	private @Nullable String focusTip;
+	private int focusTipX;
+	private int focusTipY;
 	private boolean revealPending = true;
 	private int gridScroll;
 	private int railScroll;
@@ -278,11 +285,18 @@ public class PickerScreen extends Screen {
 		int detailW = Math.max(104, Math.min(200, iw * 26 / 100));
 		int gridX = ix + railW + 1;
 		int gridW = iw - railW - detailW - 2;
+		focusTip = null;
 		drawRail(g, f, ix, mainY, railW, mainH, mx, my);
 		g.fill(ix + railW, mainY, ix + railW + 1, mainY + mainH, UiStyle.rule());
 		drawGrid(g, f, gridX, mainY, gridW, mainH, mx, my);
 		g.fill(gridX + gridW, mainY, gridX + gridW + 1, mainY + mainH, UiStyle.rule());
 		drawDetail(g, f, gridX + gridW + 1, mainY, detailW, mainH, mx, my);
+		if (focusTip != null) {
+			// the keyboard-focused cell's full name, under it, when its label is cut
+			g.nextStratum();
+			Tooltip.render(g, f, focusTip, focusTipX, focusTipY);
+			focusTip = null;
+		}
 		tooltip.offer(tags, mx, my);
 		tooltip.offer(compare, mx, my);
 		for (Chip c : recentChips) {
@@ -411,12 +425,16 @@ public class PickerScreen extends Screen {
 	}
 
 	private void layoutGrid(int w) {
-		int minW = cards() ? 96 : 58;
-		cellH = cards() ? 66 : 38;
 		int inner = w - 8 - BAR_W - 2;
-		cols = Math.max(1, (inner + GAP) / (minW + GAP));
-		cellW = (inner - GAP * (cols - 1)) / cols;
 		visible = model.visible();
+		int largest = 0;
+		for (PickerModel.Section<PickerEntry> sec : model.sections()) {
+			largest = Math.max(largest, sec.items().size());
+		}
+		// fewer, wider columns when the sections are short; cells and cards grow to fill the row (up to a cap)
+		cols = SectionGrid.columns(inner, GAP, cards() ? CARD_MIN_W : CELL_MIN_W, largest);
+		cellW = SectionGrid.cellWidth(inner, GAP, cols, cards() ? CARD_MAX_W : CELL_MAX_W);
+		cellH = cards() ? sheetH() + 37 : thumbH() + 27;
 		grid = model.grid(cols, true);
 		rowY = new int[grid.rows()];
 		int yy = 0;
@@ -471,6 +489,12 @@ public class PickerScreen extends Screen {
 				boolean hov = mx >= cx && mx < cx + cellW && my >= Math.max(yy, top) && my < Math.min(yy + cellH, top + viewH) && mx < x + w - BAR_W - 3;
 				if (hov) {
 					hoveredId = e.id();
+					tooltip.offer("cell:" + e.id(), e.subtitle() == null ? e.label() : e.label() + "\n" + e.subtitle());
+				}
+				if (focus == Focus.GRID && i == sel && keyLast && nameCut(f, e) && yy + cellH <= top + viewH) {
+					focusTip = e.label();
+					focusTipX = cx;
+					focusTipY = yy + cellH - 12;
 				}
 				if (cards()) {
 					drawCard(g, f, e, cx, yy, cellW, cellH, i == sel, hov, focus == Focus.GRID && i == sel);
@@ -501,6 +525,41 @@ public class PickerScreen extends Screen {
 		}
 	}
 
+	/** Swatch height of a cell, from its width. */
+	private int thumbH() {
+		return Math.max(18, Math.min(40, cellW * 32 / 100));
+	}
+
+	/** Preview-sheet height of a card, from its width. */
+	private int sheetH() {
+		return Math.max(36, Math.min(90, cellW * 42 / 100));
+	}
+
+	/** {@code s} in at most two lines of {@code w} px, the second ellipsized; {@code [line1, line2|null, "1" if cut]}. */
+	private static String[] twoLines(Font f, String s, int w) {
+		List<String> l = TextUtil.wrapPlain(f, s, Math.max(10, w));
+		if (l.size() <= 1) {
+			return new String[] {l.isEmpty() ? "" : l.get(0), null, null};
+		}
+		if (l.size() == 2 && f.width(l.get(1)) <= w) {
+			return new String[] {l.get(0), l.get(1), null};
+		}
+		String rest = String.join(" ", l.subList(1, l.size()));
+		return new String[] {l.get(0), TextUtil.ellipsize(f, rest, w), "1"};
+	}
+
+	private void drawName(GuiGraphicsExtractor g, Font f, PickerEntry e, int x, int y, int w) {
+		String[] n = twoLines(f, name(e), w);
+		g.text(f, n[0], x, y, UiStyle.INK, false);
+		if (n[1] != null) {
+			g.text(f, n[1], x, y + 10, UiStyle.INK, false);
+		}
+	}
+
+	private boolean nameCut(Font f, PickerEntry e) {
+		return twoLines(f, name(e), cellW - (cards() ? 8 : 6))[2] != null;
+	}
+
 	private void drawThumb(GuiGraphicsExtractor g, Font f, PickerEntry e, int x, int y, int w, int h, int iconSize) {
 		if (e.preview() != null) {
 			e.preview().draw(g, f, x, y, w, h);
@@ -529,8 +588,9 @@ public class PickerScreen extends Screen {
 		if (focusOn) {
 			Paint.focus(g, x, y, w, h);
 		}
-		drawThumb(g, f, e, x + 3, y + 3, w - 6, h - 16, 16);
-		g.text(f, TextUtil.ellipsize(f, name(e), w - 6), x + 3, y + h - 11, UiStyle.INK, false);
+		int th = thumbH();
+		drawThumb(g, f, e, x + 3, y + 3, w - 6, th, 16);
+		drawName(g, f, e, x + 3, y + 3 + th + 3, w - 6);
 	}
 
 	private void drawCard(GuiGraphicsExtractor g, Font f, PickerEntry e, int x, int y, int w, int h, boolean sel, boolean hov, boolean focusOn) {
@@ -541,11 +601,11 @@ public class PickerScreen extends Screen {
 		if (focusOn) {
 			Paint.focus(g, x, y, w, h);
 		}
-		int sheetH = h - 26;
+		int sheetH = sheetH();
 		drawThumb(g, f, e, x + 1, y + 1, w - 2, sheetH, 24);
 		g.fill(x + 1, y + 1 + sheetH, x + w - 1, y + 2 + sheetH, UiStyle.rowHoverEdge());
-		g.text(f, TextUtil.ellipsize(f, name(e), w - 8), x + 4, y + sheetH + 4, UiStyle.INK, false);
-		drawTags(g, f, e.tags(), x + 4, y + sheetH + 14, w - 8);
+		drawName(g, f, e, x + 4, y + sheetH + 4, w - 8);
+		drawTags(g, f, e.tags(), x + 4, y + h - 13, w - 8);
 	}
 
 	/** Small tag boxes in one row, the rest folded into "+N". */
@@ -666,6 +726,13 @@ public class PickerScreen extends Screen {
 	public boolean keyPressed(KeyEvent e) {
 		keyLast = true;
 		if (e.isEscape()) {
+			// a typed search is cleared first; the next Esc goes back
+			if (!search.isEmpty()) {
+				search.clear();
+				queryChanged();
+				focus = Focus.SEARCH;
+				return true;
+			}
 			back();
 			return true;
 		}
