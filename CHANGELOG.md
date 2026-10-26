@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.4.0
+
+Additive: every 0.3.x class and method is unchanged (`Toasts.Spec` keeps its 7-argument constructor). Consumers move their
+range to `>=0.4.0 <0.5.0`.
+
+**Jobs & spend panel.** `JobBoard` (client): a registry each mod publishes its rows (`JobRow`, `JobState`) and cost-ledger
+entries (`JobCost`) into, replacing only its own; `JobsScreen`, the panel (today's ledger total with the per-mod split, a
+usage-limit banner, filter chips, group by state or mod, rows that fold their children, a detail pane with spend against
+budget and the owning mod's Open / Approve / Raise / Cancel); and the needs-you pill (`lab_ui:jobs_pill`, `TOP_LEFT`). The
+logic is pure and unit-tested (`JobBoardModel`, `JobBoardModelTest`): grouping, ordering, folding, filter counts, today's
+totals with each job counted once, the needs-you count and the banner time. `JobBoard.install()` registers the panel key
+`key.lab_ui.jobs` (default K, category "Lab UI", `assets/lab_ui/lang/en_us.json`) once, however many mods call it.
+
+**Toast refs.** `Toasts.Spec.ref(rowId)` and `Toasts.refShown()`: while such a toast shows, the panel key opens the panel on
+that row; without a hint of its own the toast hints "[K] see it".
+
 ## 0.3.1
 
 Patch: behaviour fix, no API change (`HudLayout.VANILLA_TOAST_W` is a new constant). Consumers keep `>=0.3.0 <0.4.0`.

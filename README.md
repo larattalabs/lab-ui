@@ -24,7 +24,7 @@ Lab UI is the shared client UI library of the Laratta Labs Minecraft mods (Agent
 
 ### Use it in your mod
 
-The jar is published to GitHub Packages at `https://maven.pkg.github.com/larattalabs/lab-ui`, as `dev.larattalabs:lab_ui:<version>` (latest: `0.3.1`, which adds [on-dark colour tokens and shared HUD zones](#hud-zones-and-on-dark-tokens-030); `0.2.0` added the [components](#components-020)).
+The jar is published to GitHub Packages at `https://maven.pkg.github.com/larattalabs/lab-ui`, as `dev.larattalabs:lab_ui:<version>` (latest: `0.4.0`, which adds the [Jobs & spend panel](#jobs--spend-panel-040); `0.3.0` added [on-dark colour tokens and shared HUD zones](#hud-zones-and-on-dark-tokens-030), `0.2.0` the [components](#components-020)).
 
 **1. Get a token.** GitHub Packages' Maven registry needs one **even for public packages**: a token with the `read:packages` scope (a classic personal access token, or your GitHub CLI login). With the GitHub CLI:
 
@@ -35,7 +35,7 @@ export GITHUB_ACTOR=$(gh api user --jq .login) GITHUB_TOKEN=$(gh auth token)
 
 Or put them in `~/.gradle/gradle.properties` as `gpr.user` / `gpr.key`.
 
-**2. Add the repository and the dependency** to your `build.gradle` (Loom 1.18 with the non-remapping `net.fabricmc.fabric-loom` plugin, the same setup as the three mods), and set `lab_ui_version=0.3.0` in `gradle.properties`:
+**2. Add the repository and the dependency** to your `build.gradle` (Loom 1.18 with the non-remapping `net.fabricmc.fabric-loom` plugin, the same setup as the three mods), and set `lab_ui_version=0.4.0` in `gradle.properties`:
 
 ```groovy
 repositories {
@@ -65,7 +65,7 @@ With `splitEnvironmentSourceSets()`, `implementation` covers both `main` and `cl
 **3. Declare the range** in your `fabric.mod.json`. Then a clash between two mods that bundle different lab-ui versions becomes a clear loader error, not a `NoSuchMethodError`:
 
 ```json
-"depends": { "lab_ui": ">=0.3.0 <0.4.0" }
+"depends": { "lab_ui": ">=0.4.0 <0.5.0" }
 ```
 
 **CI in a consumer repo.** Steward's CI already resolves `dev.larattalabs:architect_mc` from GitHub Packages this way: give the workflow `permissions: packages: read`, and set the env `GITHUB_ACTOR: ${{ github.actor }}` and `GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}` for the Gradle step. If a consumer run still gets 401/403 on `lab_ui`, there are two fixes. Either grant that repo access in the package settings (github.com/larattalabs/lab-ui/packages, then "Package settings", then "Manage Actions access"), or use a PAT secret with `read:packages` instead.
@@ -99,8 +99,10 @@ The first build downloads Minecraft and Fabric, which takes a few minutes. To te
 - **HUD zones and on-dark tokens (0.3.0).** Named HUD zones that every mod registers into, so HUD pieces of different mods
   never overlap each other or vanilla's boss bars, effects and toasts; and colour tokens for text on dark HUD panels and
   in-world plates (see [HUD zones and on-dark tokens](#hud-zones-and-on-dark-tokens-030)).
+- **Jobs & spend panel (0.4.0).** A client-side registry every mod publishes its Claude work and cost ledger into, one
+  panel over all of it (the K key), and a shared needs-you pill in the HUD (see [Jobs & spend panel](#jobs--spend-panel-040)).
 
-It has no entrypoint, so nothing runs until a consumer calls it. Since 0.3.0 it has one client mixin config,
+It has no entrypoint, so nothing runs until a consumer calls it (`JobBoard.install()` is what registers the panel key). Since 0.3.0 it has one client mixin config,
 `lab_ui.client.mixins.json`: three read-only accessors (vanilla's toasts and boss bars, for the HUD zones), not required, so a
 miss in a later Minecraft only loses the vanilla offset. Consumers bundle it jar-in-jar. The pure classes (`dev.larattalabs.labui.ui.*`) have unit tests; the client classes are exercised by the consuming mods.
 
@@ -129,10 +131,12 @@ Only code that builds `<yourmod>:kit/...` ids by hand changes, along with any re
 src/main/java/dev/larattalabs/labui/        LabUi (ids, logger) and ui/: the pure, unit-tested classes (TextDepth, LeaderGaps, Guard,
                                             UiRules, ToastStack, ListNav, ScrollMath, TextMatch, ChipFlow, ConfirmArm, TooltipMath,
                                             PickerMemory, SectionGrid, PickerModel, PageSlice, ChatPager; 0.3.0: HudZone, HudLayout,
-                                            ZoneStack, VanillaHudMath, Contrast)
+                                            ZoneStack, VanillaHudMath, Contrast; 0.4.0: JobRow, JobState, JobCost,
+                                            JobBoardModel)
 src/client/java/dev/larattalabs/labui/client/
   ui/                                       Kit, Panels, UiStyle, TextUtil, WorldUi, GuardedHud
   hud/                                      UiBits, Toasts, HudZones, VanillaHud
+  jobs/                                     JobBoard, JobsScreen, NeedsYouPill (0.4.0)
   text/                                     TextModel, TextFieldView, TextKeys
   widget/                                   Control, Button, Chip, ChipRow, ScrollList, CollapsibleSection, Tooltip, EmptyState,
                                             Confirm, NavKeys, Paint
@@ -140,7 +144,7 @@ src/client/java/dev/larattalabs/labui/client/
   monitor/                                  DisplayDraw, ScreenStyle
   world/                                    SpeechBubble
 src/client/java/dev/larattalabs/labui/mixin/client/   accessors for VanillaHud (lab_ui.client.mixins.json, not required)
-src/main/resources/assets/lab_ui/           kit sprites, gui/kit.json, gui/ui-style.json, palette.json
+src/main/resources/assets/lab_ui/           kit sprites, gui/kit.json, gui/ui-style.json, palette.json, lang/en_us.json (0.4.0)
 src/test/java/                              JUnit tests for the pure classes
 .github/workflows/                          ci.yml (build, test, jar contents), publish.yml (release tags)
 ```
@@ -170,7 +174,7 @@ belongs to the screen: set `focused(true)` on the control that Enter / Space sho
 | `PickerStore` | recents and favourites per picker id, and `CollapsibleSection` open states, in `config/lab_ui/pickers.json` (`PickerMemory`); prefix ids and keys with your mod id |
 | `ChatPager` (common) | `ChatPager.of(lines).pageSize(8).page(p).filter(f).pageCommand(n -> cmd).filterCommand(prefix).build()`: the page plus "…and K more · page 2/5 [‹ prev] [next ›] [filter…]" |
 | `TextModel`, `TextFieldView`, `TextKeys` | the kit text field (moved from Architect and Steward, unchanged) |
-| `Toasts` | `Toasts.install()` once per mod (one shared stack), `Toasts.push(level, title, body[, key, verb])`, `Toasts.avoid(rectSupplier)` |
+| `Toasts` | `Toasts.install()` once per mod (one shared stack), `Toasts.push(level, title, body[, key, verb])`, `Toasts.avoid(rectSupplier)`; 0.3.0 `push(Spec)`; 0.4.0 `Spec.ref(rowId)` |
 
 ## HUD zones and on-dark tokens (0.3.0)
 
@@ -264,6 +268,72 @@ Additive: every 0.2.0 class and method is unchanged. Seams:
 - **A need-you toast outranks status lines** (coordinator, after the GUI-4 shots): the toasts claim a need-you toast's
   title row ahead of the top-centre pieces; when the column is short, the toast draws as its title row only
   (`ToastStack.layoutNeedFirst`), and the rest count on "+N more" when that fits.
+
+## Jobs & spend panel (0.4.0)
+
+One panel for all the Claude work the Laratta Labs mods do for the player: Architect's designs, sets, bibles, massings and
+variants beside Steward's settlement builds, talk and part offers. It shows what each costs against its budget, what a
+usage limit holds and what waits for the player, and each row links back into its own mod. The design is Architect's
+`docs/JOBS-PANEL.md`; the look is the approved mock.
+
+```java
+// onInitializeClient: idempotent, one key and one pill however many mods call it
+JobBoard.install();
+JobBoard.name("architect_mc", "Architect");
+
+// whenever your jobs change (any thread): replaces this mod's rows, never another mod's
+JobBoard.publish("architect_mc", List.of(
+	JobRow.builder("architect_mc:massing/m7", "massing", "Market stall v2", JobState.NEEDS_YOU)
+		.step("Massing ready: 4 masses, standing in the world").spent(0.31).budget(2, "job").created(startedAt)
+		.parent("steward_mc:settlement/12")                      // folds under Steward's settlement row, when it is published
+		.link("Architect · Designs tab", () -> openDesigns("m7"))  // Open / Enter: the panel closes, then this runs
+		.approve("Approve massing", () -> MassingReview.approve("m7"))
+		.cancel("Cancel", () -> cancel("m7"))                    // through the panel's two-press Confirm
+		.build()));
+// one entry per distinct Claude job; the totals sum this, never the rows
+JobBoard.publishLedger("architect_mc", List.of(JobCost.of("job-9f2", "steward_mc:settlement/12", 0.31, chargedAt)));
+
+// a toast about a row: "[K] see it", and K opens the panel on that row while the toast shows
+Toasts.push(Toasts.Spec.of(Toasts.Level.NEED, "Willow Bend needs you", "3 massings wait for you.").ref("steward_mc:settlement/12"));
+```
+
+| Class | API in a line |
+|---|---|
+| `JobBoard` (client) | `install()`, `publish(mod, rows)`, `publishLedger(mod, costs)`, `name(mod, displayName)`, `hostOnly(mod, b)`, `showPill(b)`, `open(rowId)`, `openFromKey()`, `keyLabel()`, `key()`, `model()`, `json()` |
+| `JobsScreen` (client) | `new JobsScreen(parent, rowId)` (or `JobBoard.open`); `filter(Filter)`, `groupBy(GroupBy)`, `selectedRow()`, `debugState()` |
+| `NeedsYouPill` (client, internal) | `lab_ui:jobs_pill` in `TOP_LEFT` (priority 70, optional): "N jobs need you · <first title> [K]" |
+| `JobRow` | `JobRow.builder(id, kind, title, state).step(s).needsYou(b).spent(usd).budget(usd, kind).held(reason, resetAtMs).link(label, run).created(ms).ended(ms).parent(id).approve(label, run).cancel(label, run).raise(label, run).build()`; `waiting()` |
+| `JobState` | `NEEDS_YOU, RUNNING, QUEUED, HELD, PAUSED_BUDGET, DONE, FAILED, CANCELLED`; `ended()`, `label()` |
+| `JobCost` | `JobCost.of(jobId, owner, usd, atMs)`; `ownerMod()` (the owner's namespace, else the publishing mod) |
+| `JobBoardModel` (pure, tested) | the registry (`publish`, `publishLedger`, `rows`, `ledger`, `row`, `nameOf`, `version`) and the logic: `roots`, `descendants`, `waitingUnder`, `group`, `lines(rows, filter, groupBy, modName, folded, expanded)`, `counts`, `waitingRoots`, `needsYouCount`, `pillText`, `held`, `resetAt`, `totals(ledger, now, zone)`, `spendText`, `usd`, `budget`, `age` |
+
+- **Rows are global by id.** Use `<modid>:<thing>` ids. A row whose `parent` names a published row folds under it (one level
+  in the list; deeper descendants fold under the same root). Until the parent is published the row stands on its own, so
+  the order in which mods publish does not matter.
+- **The panel decides nothing.** Open, Approve, Raise and Cancel run the owning mod's callbacks; the row changes when that
+  mod publishes again ("Sent to Architect. The row changes when Architect answers."). Approve shows only while the row
+  waits for the player.
+- **Needs you.** A row waits when `needsYou` is set or its state is `NEEDS_YOU` (never once ended). A root waits when it or
+  anything under it waits, and counts once: the pill, the header and the Needs you chip all count roots.
+- **Spend.** The header total is today's (the local day) sum of the ledger, labelled "estimate". Entries with the same job
+  id count once (the latest charge wins) whichever mod publishes them; the split per mod goes by the owner's namespace, so a
+  Steward-owned job that Architect runs counts as Steward's. Row and group figures attribute cost only.
+- **Held.** While any row is `HELD`, a banner says when Claude work resumes (the soonest `resetAt` still ahead).
+- **Layout.** Title bar with the key hints; total, per-mod split and the needs-you count; the banner; chips All / Needs
+  you / Running / Held / Ended with counts and Group by State / Mod; the list (group heads fold, remembered under
+  `lab_ui.jobs.<group>` in `config/lab_ui/pickers.json`; a root's children show while it or one of them is selected);
+  the detail pane (state, step, what waits under it, spend against budget, its Claude jobs, times, where Open goes, the
+  actions). Empty states: no work yet; "Claude work runs in the host's game" when a mod said `hostOnly`; "Nothing in
+  <filter> right now" with Show all. Lines that do not fit above the actions are left out whole, never cut.
+- **Keys.** The panel key `key.lab_ui.jobs` (Options > Controls > Key Binds > Lab UI) is K by default. K is free in
+  Minecraft 26.3's defaults (they use G for quick actions, O for friends, P for social interactions, L for advancements;
+  F3+K is not a debug combo) and in both mods (Architect B/J, Steward Y/I/U). In the panel: arrows move, Enter opens the
+  row in its mod (on a group head: folds it), A approves, K or Esc closes (Esc disarms an armed Cancel first). The key
+  does nothing while another screen is open.
+- **Toast refs.** `Toasts.Spec.ref(rowId)`: with no hint of its own the toast hints "[K] see it" (the key as bound), and
+  `Toasts.refShown()` is the ref of the topmost toast on screen. Only drawn toasts count, not queued ones.
+- **Pill.** Hidden when nothing waits, under F1 and screens, and with `JobBoard.showPill(false)`; it is optional in its
+  zone, so it gives way when the top left is full. Steward's own HUD line is meant to give way to it.
 
 ## Migrating from AgentCraft Worlds, Architect or Steward
 

@@ -45,6 +45,9 @@ Files written for lab-ui (Laratta Labs)
 The 0.2.0 components, all new: src/main/java/dev/larattalabs/labui/ui/{ListNav, ScrollMath, TextMatch, ChipFlow,
 ConfirmArm, TooltipMath, PickerMemory, SectionGrid, PickerModel, PageSlice, ChatPager}.java and their tests;
 src/client/java/dev/larattalabs/labui/client/widget/*.java and client/picker/*.java; the UiStyle semantic accessors.
+The 0.4.0 Jobs & spend panel, all new: src/main/java/dev/larattalabs/labui/ui/{JobRow, JobState, JobCost,
+JobBoardModel}.java and JobBoardModelTest; src/client/java/dev/larattalabs/labui/client/jobs/*.java;
+src/main/resources/assets/lab_ui/lang/en_us.json; Toasts.Spec.ref and Toasts.refShown.
 
 Art and style data (upstream AgentCraft "Warm Studio" art track)
 ----------------------------------------------------------------
