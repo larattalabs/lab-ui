@@ -114,6 +114,9 @@ class HudLayoutTest {
 							if (v.bossBottom() > 0) {
 								noOverlap(l, new Rect(s[0] / 2 - 91, 3, 182, v.bossBottom() - 3));
 							}
+							if (v.toastsBottom() > 0) {
+								noOverlap(l, vanillaToasts(s[0], v.toastsBottom()));
+							}
 							if (v.nowPlayingBottom() > 0) {
 								noOverlap(l, new Rect(0, 0, 160, v.nowPlayingBottom()));
 							}
@@ -229,6 +232,34 @@ class HudLayoutTest {
 		l = sc.layout(new Frame(960, 540, true), Vanilla.NONE, List.of());
 		assertEquals(540 - 50, l.zones().get(HudZone.TOP_RIGHT_TOASTS).bottom());
 		assertEquals(8 + 300, l.slot(t).y() + l.slot(t).h());
+	}
+
+	/** Vanilla's visible toasts: 160 wide against the right edge, from the top to their bottom. */
+	static Rect vanillaToasts(int gw, int bottom) {
+		return new Rect(gw - HudLayout.VANILLA_TOAST_W, 0, HudLayout.VANILLA_TOAST_W, bottom);
+	}
+
+	@Test
+	void aWideTopCentrePieceStartsBelowVanillaToasts() {
+		// 480x270 (GUI 4): two vanilla advancement toasts (32 each, to y 64), two boss bars, a 246-wide verdict panel in the
+		// top centre (x 117..363 reaches the toast column at x 320), and the rest of both mods' pieces
+		Scene sc = everything(60);
+		sc.add(HudZone.TOP_CENTER, 50, maxW -> new Want(Math.min(246, maxW), 40, 40, false)); // Architect's region verdict panel
+		Vanilla v = new Vanilla(VanillaHudMath.bossBottom(2, 270), 0, 64, 0);
+		Layout l = sc.layout(new Frame(480, 270, false), v, List.of());
+		noOverlap(l);
+		noOverlap(l, vanillaToasts(480, 64));
+		noOverlap(l, new Rect(240 - 91, 3, 182, v.bossBottom() - 3));
+		Slot panel = l.slot(sc.elems.size() - 1);
+		assertNotNull(panel);
+		assertTrue(panel.y() >= 64 + HudLayout.GAP, "panel " + panel);
+		// without vanilla toasts nothing moves down for them
+		Layout none = sc.layout(new Frame(480, 270, false), new Vanilla(v.bossBottom(), 0, 0, 0), List.of());
+		assertTrue(none.slot(1).y() < 64, "top centre starts under the boss bars: " + none.slot(1));
+		// a narrow piece clear of the column does not move
+		Scene narrow = new Scene();
+		narrow.add(HudZone.TOP_CENTER, 50, fixed(100, 12));
+		assertEquals(HudLayout.CENTER_TOP, narrow.layout(new Frame(480, 270, false), new Vanilla(0, 0, 64, 0), List.of()).slot(0).y());
 	}
 
 	@Test

@@ -27,6 +27,8 @@ public final class HudLayout {
 	public static final int TOAST_W = 196;
 	public static final int TOAST_MARGIN = 6;
 	public static final int TOAST_TOP = 8;
+	/** Vanilla's own toasts are 160 wide against the right edge (0.3.1: TOP_CENTER pieces that reach them start below). */
+	public static final int VANILLA_TOAST_W = 160;
 	/** BOTTOM_CENTER's usual bottom: this far above the screen's bottom (above the action bar and the item name). */
 	public static final int BOTTOM_ABOVE = 64;
 
@@ -157,6 +159,10 @@ public final class HudLayout {
 			}
 			if (v.nowPlayingBottom() > 0 && (gw - widest) / 2 < v.nowPlayingWidth() + GAP) {
 				top = Math.max(top, v.nowPlayingBottom() + GAP);
+			}
+			// below vanilla's visible toasts (right edge, 160 wide) when the widest centre piece would reach them
+			if (v.toastsBottom() > 0 && (gw + widest) / 2 > gw - VANILLA_TOAST_W - GAP) {
+				top = Math.max(top, v.toastsBottom() + GAP);
 			}
 			if (claim > 0 && (gw + widest) / 2 > columnX - GAP && top < columnTop + claim + GAP) {
 				top = columnTop + claim + GAP;

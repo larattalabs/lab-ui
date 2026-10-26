@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.3.1
+
+Patch: behaviour fix, no API change (`HudLayout.VANILLA_TOAST_W` is a new constant). Consumers keep `>=0.3.0 <0.4.0`.
+
+**TOP_CENTER clears vanilla's toasts.** The zone already started below the boss bars and "Now playing"; it now also starts
+4 px below vanilla's visible toasts (160 wide, against the right edge) when its widest piece reaches them. At GUI 480x270
+with two advancement toasts, Architect's 246-px region verdict panel overlapped the toast column by 1 px. The need-you
+title-row reservation and the priority rules are unchanged. `HudLayoutTest` adds that exact layout and checks vanilla's
+toast rect in the 72-layout no-overlap test.
+
 ## 0.3.0
 
 Additive: every 0.2.0 class and method is unchanged. Consumers move their range to `>=0.3.0 <0.4.0`.
