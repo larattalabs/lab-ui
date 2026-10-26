@@ -24,7 +24,7 @@ Lab UI is the shared client UI library of the Laratta Labs Minecraft mods (Agent
 
 ### Use it in your mod
 
-The jar is published to GitHub Packages at `https://maven.pkg.github.com/larattalabs/lab-ui`, as `dev.larattalabs:lab_ui:<version>` (latest: `0.3.0`, which adds [on-dark colour tokens and shared HUD zones](#hud-zones-and-on-dark-tokens-030); `0.2.0` added the [components](#components-020)).
+The jar is published to GitHub Packages at `https://maven.pkg.github.com/larattalabs/lab-ui`, as `dev.larattalabs:lab_ui:<version>` (latest: `0.3.1`, which adds [on-dark colour tokens and shared HUD zones](#hud-zones-and-on-dark-tokens-030); `0.2.0` added the [components](#components-020)).
 
 **1. Get a token.** GitHub Packages' Maven registry needs one **even for public packages**: a token with the `read:packages` scope (a classic personal access token, or your GitHub CLI login). With the GitHub CLI:
 
@@ -219,7 +219,7 @@ HudZones.add(MyMod.id("status"), HudZone.TOP_LEFT, new HudZones.Element() {
 | Zone | Where | Anchor |
 |---|---|---|
 | `BOTTOM_CENTER` | centred, stacking up from 64 px above the bottom; never over the crosshair (on a short screen the floor drops to just above the hotbar) | laid out first: aimed panels never move for anything |
-| `TOP_CENTER` | centred, stacking down below vanilla's boss bars, to the crosshair | |
+| `TOP_CENTER` | centred, stacking down below vanilla's boss bars, to the crosshair | starts below "Now playing" and (0.3.1) vanilla's toasts when its widest piece reaches them |
 | `TOP_LEFT` | x 6, stacking down below vanilla's "Now playing" toast; each piece's `maxW` ends at the toast column or the top-centre pieces and boss bars beside it | answering wider than `maxW` moves the piece below them |
 | `TOP_RIGHT_TOASTS` | the toast column (196 wide, 6 from the right), below vanilla's toasts and effect icons, in the first free run between the pieces other zones placed in it | `Toasts` is its priority-0 element. A piece's `minH` here is a claim: it is placed before the top-centre pieces that cross the column, which start below it and collapse first. `Toasts` claims a need-you toast's title row, so one is never folded away; info toasts claim nothing and may fold into "+N more" |
 | `LEFT`, `RIGHT` | the edges, centred on the middle | nothing uses them yet |
