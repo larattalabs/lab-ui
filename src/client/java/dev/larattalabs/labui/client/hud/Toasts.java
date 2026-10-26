@@ -1,6 +1,7 @@
 package dev.larattalabs.labui.client.hud;
 
 import dev.larattalabs.labui.LabUi;
+import dev.larattalabs.labui.client.jobs.JobBoard;
 import dev.larattalabs.labui.client.ui.Kit;
 import dev.larattalabs.labui.client.ui.Panels;
 import dev.larattalabs.labui.client.ui.TextUtil;
@@ -51,24 +52,37 @@ public final class Toasts implements HudElement {
 	/**
 	 * A toast (0.3.0): its level, title, body and optional key hint ("B" "open"); {@code maxBodyLines} 1-3 (clamped; 2 in
 	 * the plain overloads); {@code subject}, a prefix of the title shortened first when the title is too wide
-	 * ("Stilt Swamp Fishing… needs you"), or null for the plain ellipsis.
+	 * ("Stilt Swamp Fishing… needs you"), or null for the plain ellipsis. 0.4.0: {@code ref}, a Jobs &amp; spend panel row
+	 * id: while the toast shows, the panel key opens the panel on that row; without a hint of its own the toast then
+	 * hints "[K] see it" (the key as bound).
 	 */
 	public record Spec(Level level, String title, String body, @Nullable String hintKey, @Nullable String hintVerb, int maxBodyLines,
-		@Nullable String subject) {
+		@Nullable String subject, @Nullable String ref) {
+		/** The 0.3 shape (no ref). */
+		public Spec(Level level, String title, String body, @Nullable String hintKey, @Nullable String hintVerb, int maxBodyLines,
+			@Nullable String subject) {
+			this(level, title, body, hintKey, hintVerb, maxBodyLines, subject, null);
+		}
+
 		public static Spec of(Level level, String title, String body) {
-			return new Spec(level, title, body, null, null, 2, null);
+			return new Spec(level, title, body, null, null, 2, null, null);
 		}
 
 		public Spec hint(@Nullable String key, @Nullable String verb) {
-			return new Spec(level, title, body, key, verb, maxBodyLines, subject);
+			return new Spec(level, title, body, key, verb, maxBodyLines, subject, ref);
 		}
 
 		public Spec bodyLines(int n) {
-			return new Spec(level, title, body, hintKey, hintVerb, n, subject);
+			return new Spec(level, title, body, hintKey, hintVerb, n, subject, ref);
 		}
 
 		public Spec subject(@Nullable String prefixOfTitle) {
-			return new Spec(level, title, body, hintKey, hintVerb, maxBodyLines, prefixOfTitle);
+			return new Spec(level, title, body, hintKey, hintVerb, maxBodyLines, prefixOfTitle, ref);
+		}
+
+		/** 0.4.0: the Jobs &amp; spend panel row this toast is about (see {@code JobBoard}). */
+		public Spec ref(@Nullable String rowId) {
+			return new Spec(level, title, body, hintKey, hintVerb, maxBodyLines, subject, rowId);
 		}
 	}
 
@@ -84,6 +98,7 @@ public final class Toasts implements HudElement {
 		final String hintVerb;
 		final int maxBodyLines;
 		final @Nullable String subject;
+		@Nullable String ref;
 
 		Toast(Level level, String title, String body, String icon, long arrived, long life, @Nullable String hintKey, String hintVerb,
 			int maxBodyLines, @Nullable String subject) {
@@ -157,6 +172,26 @@ public final class Toasts implements HudElement {
 		return shown;
 	}
 
+	/**
+	 * 0.4.0: the row ref of the topmost toast drawn last frame that has one ({@link Spec#ref}), or null. Only toasts on
+	 * screen count, not queued ones; the panel key reads it.
+	 */
+	public static @Nullable String refShown() {
+		ToastStack.Layout l = lastLayout;
+		List<Toast> order = lastOrder;
+		long now = Util.getMillis();
+		for (int k = 0; k < l.shown().size(); k++) {
+			int i = l.shown().get(k);
+			if (i < order.size()) {
+				Toast t = order.get(i);
+				if (t.ref != null && !t.over(now) && ACTIVE.contains(t)) {
+					return t.ref;
+				}
+			}
+		}
+		return null;
+	}
+
 	public static void push(Level level, String title, String body) {
 		push(level, title, body, null, null);
 	}
@@ -171,14 +206,20 @@ public final class Toasts implements HudElement {
 		Level level = spec.level();
 		String hintKey = spec.hintKey();
 		String hintVerb = spec.hintVerb();
+		if (spec.ref() != null && hintKey == null && JobBoard.installed()) {
+			hintKey = JobBoard.keyLabel();
+			hintVerb = "see it";
+		}
 		long life = switch (level) {
 			case NEED -> 9000;
 			case WARN -> 8000;
 			default -> 5500;
 		};
 		String icon = level == Level.NEED ? "decision" : level == Level.WARN ? "test" : "message";
-		ACTIVE.add(0, new Toast(level, spec.title(), spec.body(), icon, Util.getMillis(), life, hintKey, hintVerb == null ? "" : hintVerb,
-			spec.maxBodyLines(), spec.subject()));
+		Toast toast = new Toast(level, spec.title(), spec.body(), icon, Util.getMillis(), life, hintKey, hintVerb == null ? "" : hintVerb,
+			spec.maxBodyLines(), spec.subject());
+		toast.ref = spec.ref();
+		ACTIVE.add(0, toast);
 		for (int drop = ToastStack.evict(needs(ACTIVE), ToastStack.MAX_KEPT); drop >= 0; drop = ToastStack.evict(needs(ACTIVE), ToastStack.MAX_KEPT)) {
 			ACTIVE.remove(drop);
 		}
@@ -349,6 +390,9 @@ public final class Toasts implements HudElement {
 			j.addProperty("level", t.level.name().toLowerCase(Locale.ROOT));
 			j.addProperty("title", t.title);
 			j.addProperty("body", t.body);
+			if (t.ref != null) {
+				j.addProperty("ref", t.ref);
+			}
 			shownArr.add(j);
 		}
 		o.add("shown", shownArr);
