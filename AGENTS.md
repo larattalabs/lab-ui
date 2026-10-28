@@ -11,8 +11,8 @@ Architect and Steward. CHANGELOG.md lists what each version added.
 
 Notify all three before changing the API, and say which version carries the change:
 - AgentCraft Worlds (`~/Developer/agentcraft`, larattalabs/agentcraft-worlds)
-- Architect (`~/Developer/LarattaLabs/architect-mc`)
-- Steward (`~/Developer/LarattaLabs/steward-mc`)
+- Architect (`~/Developer/LarattaLabs/Minecraft/architect-mc`)
+- Steward (`~/Developer/LarattaLabs/Minecraft/steward-mc`)
 
 Fabric loads one copy of lab-ui for all of them (the highest bundled version), so a breaking change reaches every mod
 installed next to the one that shipped it.
@@ -20,7 +20,7 @@ installed next to the one that shipped it.
 ## Build, test, publish
 
 - `export JAVA_HOME=/opt/homebrew/opt/openjdk@25 GRADLE_USER_HOME=$PWD/.gradle-home`. In a new checkout or worktree, first
-  `cp -c -R ~/Developer/LarattaLabs/architect-mc/.gradle-home . && rm -f .gradle-home/daemon/*/registry.bin*` (an APFS clone,
+  `cp -c -R ~/Developer/LarattaLabs/Minecraft/architect-mc/.gradle-home . && rm -f .gradle-home/daemon/*/registry.bin*` (an APFS clone,
   cheap; the copied daemon registry would otherwise reach the original's live daemons; never run `./gradlew --stop`), then `./gradlew build --offline`.
 - `./gradlew build` compiles, runs the unit tests (every pure class in `dev.larattalabs.labui.ui`) and builds the jar. CI (`ci.yml`) also
   checks the jar carries the classes, sprites, style files, LICENSE and NOTICE.
