@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased (ui/polish-1)
+## 0.4.1
 
 Additive: every 0.4.0 class and method is unchanged. One visible default changes: `TextFieldView`'s placeholder colour.
 A patch-level release fits (consumers keep `>=0.4.0 <0.5.0`); the mods read the new tokens with a fallback, so they draw the

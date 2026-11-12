@@ -24,7 +24,7 @@ Lab UI is the shared client UI library of the Laratta Labs Minecraft mods (Agent
 
 ### Use it in your mod
 
-The jar is published to GitHub Packages at `https://maven.pkg.github.com/larattalabs/lab-ui`, as `dev.larattalabs:lab_ui:<version>` (latest: `0.4.0`, which adds the [Jobs & spend panel](#jobs--spend-panel-040); `0.3.0` added [on-dark colour tokens and shared HUD zones](#hud-zones-and-on-dark-tokens-030), `0.2.0` the [components](#components-020)).
+The jar is published to GitHub Packages at `https://maven.pkg.github.com/larattalabs/lab-ui`, as `dev.larattalabs:lab_ui:<version>` (latest: `0.4.1`, paper-contrast text tokens and placeholder colour from the 2026-11-12 UI audit; `0.4.0` added the [Jobs & spend panel](#jobs--spend-panel-040), `0.3.0` added [on-dark colour tokens and shared HUD zones](#hud-zones-and-on-dark-tokens-030), `0.2.0` the [components](#components-020)).
 
 **1. Get a token.** GitHub Packages' Maven registry needs one **even for public packages**: a token with the `read:packages` scope (a classic personal access token, or your GitHub CLI login). With the GitHub CLI:
 
@@ -35,7 +35,7 @@ export GITHUB_ACTOR=$(gh api user --jq .login) GITHUB_TOKEN=$(gh auth token)
 
 Or put them in `~/.gradle/gradle.properties` as `gpr.user` / `gpr.key`.
 
-**2. Add the repository and the dependency** to your `build.gradle` (Loom 1.18 with the non-remapping `net.fabricmc.fabric-loom` plugin, the same setup as the three mods), and set `lab_ui_version=0.4.0` in `gradle.properties`:
+**2. Add the repository and the dependency** to your `build.gradle` (Loom 1.18 with the non-remapping `net.fabricmc.fabric-loom` plugin, the same setup as the three mods), and set `lab_ui_version=0.4.1` in `gradle.properties`:
 
 ```groovy
 repositories {
