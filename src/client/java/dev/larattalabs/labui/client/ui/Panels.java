@@ -57,7 +57,7 @@ public final class Panels {
 	}
 
 	/**
-	 * The header with a right-aligned meta line ("2 waiting for you", "1 building · 257 x 257") on the title's baseline, instead of text the
+	 * The header with a right-aligned meta line, ending 2 px in from the strip's right end, ("2 waiting for you", "1 building · 257 x 257") on the title's baseline, instead of text the
 	 * caller places by eye (which sat 1-2 px off it). The title gives way first: it is ellipsized to leave the meta whole and an 8 px gap.
 	 * {@code meta} may be null or empty. Since the release after 0.4.0 (ui/polish-1).
 	 */
@@ -66,9 +66,10 @@ public final class Panels {
 		Kit.Padding p = Kit.padding("header");
 		int ty = headerTextY(y);
 		int mw = meta == null || meta.isEmpty() ? 0 : font.width(meta);
-		int room = w - p.left() - p.right() - (mw > 0 ? mw + 8 : 0);
+		int room = w - p.left() - 2 - (mw > 0 ? mw + 8 : 0);
 		text(g, font, TextUtil.ellipsize(font, title, Math.max(0, room)), x + p.left(), ty, UiStyle.color("paper.text"));
-		if (mw > 0) text(g, font, meta, x + w - p.right() - mw, ty, metaArgb);
+		// the meta ends 2 px in from the strip, on the content edge of the usual call (the strip drawn 2 px past the content each side)
+		if (mw > 0) text(g, font, meta, x + w - 2 - mw, ty, metaArgb);
 	}
 
 	/**
