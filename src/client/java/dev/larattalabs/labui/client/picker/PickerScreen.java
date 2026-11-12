@@ -362,7 +362,7 @@ public class PickerScreen extends Screen {
 		g.text(f, label, x, y + 5, UiStyle.mutedText(), false);
 		int cx = x + f.width(label) + 8;
 		if (recentChips.isEmpty()) {
-			g.text(f, "nothing picked yet", cx, y + 5, UiStyle.color("ink_ui.ghost_on_paper", 0xFFBCAD95), false);
+			g.text(f, "nothing picked yet", cx, y + 5, UiStyle.placeholder(), false);
 		}
 		for (Chip c : recentChips) {
 			int cw = c.width(f);

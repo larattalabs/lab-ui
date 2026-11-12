@@ -310,7 +310,7 @@ public final class Toasts implements HudElement {
 			int w = Math.min(W, font.width(text) + 12);
 			int x = g.guiWidth() - 6 - w;
 			Panels.sprite(g, Kit.PANEL_PAPER, x, l.moreY(), w, MORE_H, 0xFFFFFFFF);
-			g.text(font, TextUtil.ellipsize(font, text, w - 12), x + 6, l.moreY() + 3, l.hiddenNeed() > 0 ? UiStyle.CLAY_DARK : UiBits.muted(), false);
+			g.text(font, TextUtil.ellipsize(font, text, w - 12), x + 6, l.moreY() + 3, l.hiddenNeed() > 0 ? UiStyle.clayText() : UiBits.muted(), false);
 		}
 	}
 
@@ -342,7 +342,7 @@ public final class Toasts implements HudElement {
 		Panels.sprite(g, Kit.icon(t.icon), px + 2, py, 12, 12, tint);
 		int textX = p.left() + 20;
 		int textW = W - textX - p.right();
-		g.text(font, ToastStack.fitTitle(t.title, t.subject, textW, measure(font)), x + textX, py + 2, UiStyle.withAlpha(UiStyle.CLAY_DARK, a), false);
+		g.text(font, ToastStack.fitTitle(t.title, t.subject, textW, measure(font)), x + textX, py + 2, UiStyle.withAlpha(UiStyle.clayText(), a), false);
 	}
 
 	/** {@link ToastStack.Measure} over a font. */
@@ -427,7 +427,7 @@ public final class Toasts implements HudElement {
 		int py = y + p.top() - 1;
 		Panels.sprite(g, Kit.icon(t.icon), px + 2, py + 1, 12, 12, tint);
 		int tx = x + textX;
-		g.text(font, ToastStack.fitTitle(t.title, t.subject, textW, measure(font)), tx, py + 1, UiStyle.withAlpha(need ? UiStyle.CLAY_DARK
+		g.text(font, ToastStack.fitTitle(t.title, t.subject, textW, measure(font)), tx, py + 1, UiStyle.withAlpha(need ? UiStyle.clayText()
 			: t.level == Level.WARN ? UiStyle.error() : UiBits.ink(), a), false);
 		int ly = py + 12;
 		for (FormattedCharSequence line : lines) {

@@ -193,11 +193,20 @@ public final class UiBits {
 		return Math.max(52, font.width(label) + numW + 16);
 	}
 
-	/** A pill chip with a status dot and text; returns the width. */
+	/**
+	 * A pill chip with a status dot and text; returns the width. The brass-edged pill sprite is for what needs the player (the {@code waiting}
+	 * family); every other state pill gets the chip edge (Noah, 2026-11-12: brass only where it needs you; it read as focus on plain states).
+	 */
 	public static int dotPill(GuiGraphicsExtractor g, Font font, String family, String text, int x, int y, int textArgb) {
+		return dotPill(g, font, family, text, x, y, textArgb, "waiting".equals(family));
+	}
+
+	/** {@link #dotPill} with the edge chosen: {@code needsYou} = the brass pill sprite, else the chip fill and edge. Since the release after 0.4.0. */
+	public static int dotPill(GuiGraphicsExtractor g, Font font, String family, String text, int x, int y, int textArgb, boolean needsYou) {
 		Kit.Padding p = Kit.padding("pill");
 		int w = p.left() + 7 + 3 + font.width(text) + p.right();
-		Panels.sprite(g, Kit.PILL, x, y, w, 11);
+		if (needsYou) Panels.sprite(g, Kit.PILL, x, y, w, 11);
+		else dev.larattalabs.labui.client.widget.Paint.box(g, x, y, w, 11, UiStyle.chip(), UiStyle.chipEdge());
 		Panels.sprite(g, Kit.dot(family, false), x + p.left() - 1, y + 2, 7, 7);
 		g.text(font, text, x + p.left() + 9, y + p.top(), textArgb, false);
 		return w;

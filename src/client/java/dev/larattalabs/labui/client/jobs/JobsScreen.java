@@ -312,7 +312,7 @@ public class JobsScreen extends Screen {
 			}
 			if (nx > sx + partsW + 8) {
 				UiBits.pulsingDot(g, "waiting", nx, y + 9);
-				g.text(f, s, nx + 11, y + 9, UiStyle.CLAY_DARK, false);
+				g.text(f, s, nx + 11, y + 9, UiStyle.clayText(), false);
 			}
 		}
 	}
@@ -517,7 +517,7 @@ public class JobsScreen extends Screen {
 		cy = y + 7;
 		cBottom = contentBottom;
 		for (String line : first(TextUtil.wrapPlain(f, r.title(), tw), 2)) {
-			put(g, f, line, tx, UiStyle.CLAY_DARK);
+			put(g, f, line, tx, UiStyle.clayText());
 		}
 		cy += 2;
 		if (cy + 9 <= cBottom) {
@@ -532,7 +532,7 @@ public class JobsScreen extends Screen {
 		if (!under.isEmpty()) {
 			String s = "Waits for you in: " + under.get(0).title() + (under.size() > 1 ? " (+" + (under.size() - 1) + " more)" : "");
 			for (String line : first(TextUtil.wrapPlain(f, s, tw), 2)) {
-				put(g, f, line, tx, UiStyle.CLAY_DARK);
+				put(g, f, line, tx, UiStyle.clayText());
 			}
 		}
 		if (r.state() == JobState.HELD || r.state() == JobState.PAUSED_BUDGET) {

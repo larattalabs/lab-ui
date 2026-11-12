@@ -23,6 +23,14 @@ from the JSON, as `OnDarkContrastTest` does for the HUD.
   translucent clay wash over the inset, as Steward's inbox drew, left it at 3.95:1.
 - `Panels.hoverRow(...)`: `row_hover` with its edge.
 
+**The kit's own defaults move to the tokens** (Noah, 2026-11-12: "Keep recommendations"):
+- The toasts' need-you titles and "+N need you", the Jobs panel's waiting lines and picker heads draw in `clayText()`, not
+  `CLAY_DARK`.
+- `PickerScreen`'s "nothing picked yet" uses `placeholder()`.
+- `UiBits.dotPill` keeps the brass-edged pill sprite only for the `waiting` family, which is what needs the player. Every other
+  state pill gets the chip fill and edge, because brass on a plain state read as focus.
+- `dotPill(..., boolean needsYou)` chooses the edge explicitly.
+
 **Header with a meta line.** `Panels.header(g, font, title, meta, metaArgb, x, y, w)` draws the right-hand meta on the title's
 baseline. Callers placed it by eye, 1 to 2 px off. The title is ellipsized first, so the meta stays whole. `Panels.headerTextY(y)`
 gives that baseline for other text.
