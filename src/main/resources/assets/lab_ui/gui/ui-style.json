@@ -250,7 +250,28 @@
     "title_text": "#F4EFE6",
     "danger": "#A63A2D",
     "danger_text": "#FFFBF4",
-    "link": "#874431"
+    "link": "#874431",
+    "clay_text": "#9A3F27",
+    "placeholder": "#655E55"
+  },
+  "semantic_contrast": {
+    "_note": "ui/polish-1: every semantic text token against every paper surface it is drawn on (PaperContrastTest recomputes this). muted on the selected fill passes; muted over a translucent clay wash (e.g. 0x30B4553A) does not, so selected rows use semantic.selected. placeholder (a field's empty-state words) is muted: ink_ui.ghost_on_paper #BCAD95 was 1.9:1 on the field; ghost_on_paper stays for the typed-ahead completion only.",
+    "_surfaces": {
+      "paper_bg": "#F4EFE6",
+      "paper_inset": "#E9E1D3",
+      "tab_shade": "#E3DACB",
+      "selected": "#F7D9C9",
+      "row_hover": "#FFFAF0",
+      "field": "#FFFDF8"
+    },
+    "_min_text": 4.5,
+    "error": 5.38,
+    "warn": 4.5,
+    "ok": 5.6,
+    "muted": 4.61,
+    "link": 5.22,
+    "clay_text": 4.86,
+    "placeholder": 4.61
   },
   "semantic_on_dark": {
     "_note": "lab-ui 0.3.0 on-dark tokens (UiStyle.OnDark.*): text and marks on dark surfaces (the HUD ink panel, nameplates, dark monitors, the board slate). Text tokens are >= 4.5:1 on every surface in semantic_on_dark_contrast._surfaces, composited as drawn (the HUD panel is 90% opaque, so it is also checked over a white world); focus and bar are marks (>= 3:1).",

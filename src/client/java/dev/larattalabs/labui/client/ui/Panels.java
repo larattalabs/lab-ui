@@ -51,6 +51,45 @@ public final class Panels {
 		text(g, font, TextUtil.ellipsize(font, title, w - p.left() - p.right()), x + p.left(), y + p.top() + 1, UiStyle.color("paper.text"));
 	}
 
+	/** The y at which {@link #header} draws its title, for text that must share its baseline. Since the release after 0.4.0. */
+	public static int headerTextY(int y) {
+		return y + Kit.padding("header").top() + 1;
+	}
+
+	/**
+	 * The header with a right-aligned meta line, ending 2 px in from the strip's right end, ("2 waiting for you", "1 building · 257 x 257") on the title's baseline, instead of text the
+	 * caller places by eye (which sat 1-2 px off it). The title gives way first: it is ellipsized to leave the meta whole and an 8 px gap.
+	 * {@code meta} may be null or empty. Since the release after 0.4.0 (ui/polish-1).
+	 */
+	public static void header(GuiGraphicsExtractor g, Font font, String title, String meta, int metaArgb, int x, int y, int w) {
+		sprite(g, Kit.HEADER, x, y, w, 14);
+		Kit.Padding p = Kit.padding("header");
+		int ty = headerTextY(y);
+		int mw = meta == null || meta.isEmpty() ? 0 : font.width(meta);
+		int room = w - p.left() - 2 - (mw > 0 ? mw + 8 : 0);
+		text(g, font, TextUtil.ellipsize(font, title, Math.max(0, room)), x + p.left(), ty, UiStyle.color("paper.text"));
+		// the meta ends 2 px in from the strip, on the content edge of the usual call (the strip drawn 2 px past the content each side)
+		if (mw > 0) text(g, font, meta, x + w - 2 - mw, ty, metaArgb);
+	}
+
+	/**
+	 * A selected list row: {@link UiStyle#selected()} with a 2 px {@link UiStyle#selectedEdge()} bar at the left. Muted text stays above 4.5:1 on
+	 * it (a translucent clay wash over the inset drops it to 3.95:1). Since the release after 0.4.0 (ui/polish-1).
+	 */
+	public static void selectedRow(GuiGraphicsExtractor g, int x, int y, int w, int h) {
+		g.fill(x, y, x + w, y + h, UiStyle.selected());
+		g.fill(x, y, x + 2, y + h, UiStyle.selectedEdge());
+	}
+
+	/** A hovered list row: {@link UiStyle#rowHover()} with a 1 px {@link UiStyle#rowHoverEdge()} border. Since the release after 0.4.0. */
+	public static void hoverRow(GuiGraphicsExtractor g, int x, int y, int w, int h) {
+		g.fill(x, y, x + w, y + h, UiStyle.rowHover());
+		g.fill(x, y, x + w, y + 1, UiStyle.rowHoverEdge());
+		g.fill(x, y + h - 1, x + w, y + h, UiStyle.rowHoverEdge());
+		g.fill(x, y, x + 1, y + h, UiStyle.rowHoverEdge());
+		g.fill(x + w - 1, y, x + w, y + h, UiStyle.rowHoverEdge());
+	}
+
 	public static void divider(GuiGraphicsExtractor g, int x, int y, int w) {
 		sprite(g, Kit.DIVIDER, x, y, w, 3);
 	}
