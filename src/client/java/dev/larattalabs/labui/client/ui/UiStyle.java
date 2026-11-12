@@ -87,6 +87,24 @@ public final class UiStyle {
 		return color("semantic.muted", 0xFF655E55);
 	}
 
+	/**
+	 * Clay as text: row and field labels, section titles, "Needs you · 2", a decision's own words. At least 4.5:1 on paper, the inset, an inactive
+	 * tab and the selected, hovered and field fills ({@code semantic_contrast}). {@link #CLAY} and {@link #CLAY_DARK} stay for fills, rules, edges
+	 * and dots: as text CLAY_DARK is 4.26:1 on paper and 3.76:1 on the inset. Since the release after 0.4.0 (ui/polish-1).
+	 */
+	public static int clayText() {
+		return color("semantic.clay_text", 0xFF9A3F27);
+	}
+
+	/**
+	 * A field's empty-state words ("search name, tags, text…"): at least 4.5:1 on paper, the inset and the field ({@code semantic_contrast}).
+	 * The kit's {@code TextFieldView} draws its placeholder in it; the typed-ahead completion keeps {@code ink_ui.ghost_on_paper}. Since the
+	 * release after 0.4.0 (ui/polish-1; the placeholder was #BCAD95, 1.9:1 on the field).
+	 */
+	public static int placeholder() {
+		return color("semantic.placeholder", 0xFF655E55);
+	}
+
 	/** Fill of a selected row, cell or chip (with {@link #selectedEdge()} as its border or left bar). */
 	public static int selected() {
 		return color("semantic.selected", 0xFFF7D9C9);

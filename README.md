@@ -159,7 +159,8 @@ belongs to the screen: set `focused(true)` on the control that Enter / Space sho
 
 | Component | API in a line |
 |---|---|
-| Tokens | `UiStyle.error() warn() ok() mutedText() selected() selectedEdge() focusRing() rowHover() rowHoverEdge() rule() chip() chipEdge() field() titleBar() titleText() danger() dangerText() link()`, from `ui-style.json` `semantic.*` |
+| Tokens | `UiStyle.error() warn() ok() mutedText() selected() selectedEdge() focusRing() rowHover() rowHoverEdge() rule() chip() chipEdge() field() titleBar() titleText() danger() dangerText() link()`, from `ui-style.json` `semantic.*`; unreleased (ui/polish-1): `clayText()` (clay as text, never `CLAY_DARK`) and `placeholder()`, each at least 4.5:1 on every paper surface (`semantic_contrast`) |
+| Rows and header (unreleased, ui/polish-1) | `Panels.selectedRow(g, x, y, w, h)` and `Panels.hoverRow(...)`: the selected and hovered row fills; `Panels.header(g, font, title, meta, argb, x, y, w)`: the header with a right-hand meta on the title's baseline, `Panels.headerTextY(y)` |
 | `Button` | `new Button(label, onPress).primary(b).danger(b).number(n)`; `draw(g, font, x, y, mx, my)` or `draw(g, font, x, y, w, h, mx, my)` (h ≥ 18); `Button.paint(...)` without a control |
 | `Chip` | `new Chip(label, onPress).selected(b).kind(NORMAL \| MORE).swatch(rgb).icon(stackSupplier)`; 18 px; `draw(g, font, x, y, mx, my)` returns the width |
 | `ChipRow` | `new ChipRow(chips).maxRows(n).onMore(hiddenCount -> …)`; `draw(g, font, x, y, w, mx, my)` returns the height; overflow folds into "+N" (tooltip lists the rest) |

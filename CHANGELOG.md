@@ -1,5 +1,32 @@
 # Changelog
 
+## Unreleased (ui/polish-1)
+
+Additive: every 0.4.0 class and method is unchanged. One visible default changes: `TextFieldView`'s placeholder colour.
+A patch-level release fits (consumers keep `>=0.4.0 <0.5.0`); the mods read the new tokens with a fallback, so they draw the
+same on 0.4.0.
+
+From the 2026-11-12 UI audit of Architect and Steward (design-critic over both mods' screens; contrast computed with `Contrast`):
+
+**Paper text tokens.** The new `semantic_contrast` block in `ui-style.json` records each semantic text token's worst ratio over
+six paper surfaces: paper, the inset, an inactive tab, the selected, hovered and field fills. `PaperContrastTest` recomputes it
+from the JSON, as `OnDarkContrastTest` does for the HUD.
+- `semantic.clay_text` #9A3F27, `UiStyle.clayText()`: clay as text (labels, section titles, "Needs you"). It is 4.86:1 at worst.
+  `CLAY_DARK` as text was 4.26:1 on paper and 3.76:1 on the inset, and both mods drew it that way. `CLAY` and `CLAY_DARK` stay
+  for fills, edges, rules and dots.
+- `semantic.placeholder` (= muted #655E55), `UiStyle.placeholder()`: a field's empty-state words. It is 4.61:1 at worst.
+  `TextFieldView` now draws its placeholder in it. It was `ink_ui.ghost_on_paper` #BCAD95, 1.9:1 on the field. The typed-ahead
+  ghost completion keeps #BCAD95.
+
+**Rows.**
+- `Panels.selectedRow(g, x, y, w, h)`: `semantic.selected` with a 2 px `selected_edge` bar. Muted text is 4.79:1 on it. A
+  translucent clay wash over the inset, as Steward's inbox drew, left it at 3.95:1.
+- `Panels.hoverRow(...)`: `row_hover` with its edge.
+
+**Header with a meta line.** `Panels.header(g, font, title, meta, metaArgb, x, y, w)` draws the right-hand meta on the title's
+baseline. Callers placed it by eye, 1 to 2 px off. The title is ellipsized first, so the meta stays whole. `Panels.headerTextY(y)`
+gives that baseline for other text.
+
 ## 0.4.0
 
 Additive: every 0.3.x class and method is unchanged (`Toasts.Spec` keeps its 7-argument constructor). Consumers move their
