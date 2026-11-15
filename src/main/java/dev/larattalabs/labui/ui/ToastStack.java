@@ -163,6 +163,19 @@ public final class ToastStack {
 		return m.ellipsize(subject, room) + tail;
 	}
 
+	/**
+	 * {@link #fitTitle(String, String, int, Measure)} for a need-you toast (0.5.0, S-J4 / design-critic): when the subject would be cut ("Stilt
+	 * Swamp Fishing… needs you") but fits whole on its own, the tail is dropped and the name stays whole; the clay title and stripe already say
+	 * it needs the player. When even the name alone is too wide, it is ellipsized without the tail. {@code dropTail} false is the 0.3.0 rule.
+	 */
+	public static String fitTitle(String title, @org.jspecify.annotations.Nullable String subject, int w, Measure m, boolean dropTail) {
+		if (!dropTail || m.width(title) <= w || subject == null || subject.isEmpty() || !title.startsWith(subject) || subject.length() == title.length()) {
+			return fitTitle(title, subject, w, m);
+		}
+		String name = subject.strip();
+		return m.width(name) <= w ? name : m.ellipsize(name, w);
+	}
+
 	/** Body lines (1-3) a toast shows at most (0.3.0); out of range is clamped. */
 	public static int bodyLines(int maxBodyLines) {
 		return Math.max(1, Math.min(3, maxBodyLines));

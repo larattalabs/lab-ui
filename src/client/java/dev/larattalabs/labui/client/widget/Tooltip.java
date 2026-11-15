@@ -39,10 +39,14 @@ public final class Tooltip {
 		}
 	}
 
-	/** Offers a control's tooltip when the mouse is over it. */
+	/** Offers a control's tooltip when the mouse is over it; a disabled control with a reason offers the reason (0.5.0). */
 	public void offer(Control c, int mx, int my) {
-		if (c.contains(mx, my) && c.tooltip() != null) {
-			offer(c, c.tooltip());
+		if (!c.contains(mx, my)) {
+			return;
+		}
+		String text = c.disabledReason() != null ? c.disabledReason() : c.tooltip();
+		if (text != null) {
+			offer(c, text);
 		}
 	}
 

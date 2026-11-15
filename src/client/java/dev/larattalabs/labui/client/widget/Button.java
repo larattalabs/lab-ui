@@ -86,19 +86,18 @@ public class Button extends Control {
 		if (focused && !disabled) {
 			UiBits.focusRing(g, x, y, w, h);
 		}
-		if (primary) {
-			if (disabled) {
-				Panels.sprite(g, Kit.button(true, "disabled"), x, y, w, h);
-			} else {
-				Panels.sprite(g, Kit.button(true, "normal"), x, y, w, h, hover ? PRIMARY_HOVER_TINT : PRIMARY_TINT);
-			}
+		if (primary && !disabled) {
+			Panels.sprite(g, Kit.button(true, "normal"), x, y, w, h, hover ? PRIMARY_HOVER_TINT : PRIMARY_TINT);
+		} else if (primary) {
+			// 0.5.0: a disabled primary is the plain disabled button; its pale clay sprite read as the hover state (Steward S-UI-actions)
+			Panels.sprite(g, Kit.button(false, "disabled"), x, y, w, h);
 		} else {
 			Panels.sprite(g, Kit.button(false, disabled ? "disabled" : hover || focused ? "hover" : "normal"), x, y, w, h);
 		}
 		int labelColor;
 		int numColor;
 		if (disabled) {
-			labelColor = primary ? UiBits.cream() : UiStyle.color("paper.disabled", 0xFFA39B8E);
+			labelColor = UiStyle.disabledText();
 			numColor = labelColor;
 		} else if (primary) {
 			labelColor = UiBits.panelHi();

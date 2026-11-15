@@ -107,10 +107,10 @@ public class Chip extends Control {
 				g.fill(x, y, x + w, y + H, UiStyle.rowHover());
 			}
 			Paint.dashed(g, x, y, w, H, disabled ? UiStyle.rule() : UiStyle.selectedEdge());
-			text = disabled ? UiStyle.color("paper.disabled", 0xFFA39B8E) : UiStyle.link();
+			text = disabled ? UiStyle.disabledText() : UiStyle.link();
 		} else if (disabled) {
 			Paint.box(g, x, y, w, H, UiStyle.withAlpha(UiStyle.chip(), 140), UiStyle.rule());
-			text = UiStyle.color("paper.disabled", 0xFFA39B8E);
+			text = UiStyle.disabledText();
 		} else if (selected) {
 			Paint.box(g, x, y, w, H, UiStyle.selected(), UiStyle.selectedEdge());
 			text = UiStyle.INK;

@@ -144,6 +144,17 @@ public final class JobBoard {
 		return pillShown;
 	}
 
+	private static volatile boolean idlePillShown = true;
+
+	/** Shows or hides the idle pill: ideas for the player when nothing waits (0.5.0; default shown, {@link JobRow#offer}). */
+	public static void showIdlePill(boolean b) {
+		idlePillShown = b;
+	}
+
+	public static boolean idlePillShown() {
+		return idlePillShown;
+	}
+
 	/** The registry (read-only use: the panel and the pill read it). */
 	public static JobBoardModel model() {
 		return MODEL;

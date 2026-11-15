@@ -23,10 +23,13 @@ import org.jspecify.annotations.Nullable;
  * @param resetAt    when a usage limit holding it resets (epoch ms), 0 when nothing holds it
  * @param linkLabel  where {@link #link} goes, for the detail pane ("Architect · Designs tab")
  * @param endedAt    0 while not ended
+ * @param offer      an idea or offer for the player (0.5.0): nothing is blocked on it, so it never pulses or counts as needing you; the
+ *                   panel lists it under Ideas and the pill shows a quiet count when nothing else waits ({@link JobBoardModel#pillIdleText})
  */
 public record JobRow(String id, String mod, String kind, String title, JobState state, String step, boolean needsYou, double spentUsd,
 	double budgetUsd, String budgetKind, @Nullable String heldReason, long resetAt, @Nullable Runnable link, @Nullable String linkLabel,
-	long createdAt, long endedAt, @Nullable String parentId, @Nullable Action approve, @Nullable Action cancel, @Nullable Action raise) {
+	long createdAt, long endedAt, @Nullable String parentId, @Nullable Action approve, @Nullable Action cancel, @Nullable Action raise,
+	boolean offer) {
 
 	/** An owner-supplied action: its button label and what it does. */
 	public record Action(String label, Runnable run) {
@@ -42,6 +45,19 @@ public record JobRow(String id, String mod, String kind, String title, JobState 
 		budgetKind = budgetKind == null ? "" : budgetKind;
 	}
 
+	/** The 0.4.0 constructor (no {@code offer}), kept for binary compatibility. */
+	public JobRow(String id, String mod, String kind, String title, JobState state, String step, boolean needsYou, double spentUsd,
+		double budgetUsd, String budgetKind, @Nullable String heldReason, long resetAt, @Nullable Runnable link, @Nullable String linkLabel,
+		long createdAt, long endedAt, @Nullable String parentId, @Nullable Action approve, @Nullable Action cancel, @Nullable Action raise) {
+		this(id, mod, kind, title, state, step, needsYou, spentUsd, budgetUsd, budgetKind, heldReason, resetAt, link, linkLabel, createdAt, endedAt,
+			parentId, approve, cancel, raise, false);
+	}
+
+	/** An idea or offer the player may take up (not ended, not waiting). Since 0.5.0. */
+	public boolean idea() {
+		return offer && !state.ended() && !waiting();
+	}
+
 	/** Waits for the player: the flag, or the NEEDS_YOU state (an ended row never does). */
 	public boolean waiting() {
 		return !state.ended() && (needsYou || state == JobState.NEEDS_YOU);
@@ -54,7 +70,7 @@ public record JobRow(String id, String mod, String kind, String title, JobState 
 	/** The same row published by {@code mod}. */
 	public JobRow withMod(String mod) {
 		return new JobRow(id, mod, kind, title, state, step, needsYou, spentUsd, budgetUsd, budgetKind, heldReason, resetAt, link, linkLabel,
-			createdAt, endedAt, parentId, approve, cancel, raise);
+			createdAt, endedAt, parentId, approve, cancel, raise, offer);
 	}
 
 	public static Builder builder(String id, String kind, String title, JobState state) {
@@ -82,6 +98,7 @@ public record JobRow(String id, String mod, String kind, String title, JobState 
 		private @Nullable Action approve;
 		private @Nullable Action cancel;
 		private @Nullable Action raise;
+		private boolean offer;
 
 		private Builder(String id, String kind, String title, JobState state) {
 			this.id = id;
@@ -157,9 +174,15 @@ public record JobRow(String id, String mod, String kind, String title, JobState 
 			return this;
 		}
 
+		/** An idea or offer for the player, not a blocker (0.5.0; {@link JobRow#offer}). */
+		public Builder offer(boolean b) {
+			offer = b;
+			return this;
+		}
+
 		public JobRow build() {
 			return new JobRow(id, "", kind, title, state, step, needsYou, spent, budget, budgetKind, heldReason, resetAt, link, linkLabel, createdAt,
-				endedAt, parentId, approve, cancel, raise);
+				endedAt, parentId, approve, cancel, raise, offer);
 		}
 	}
 }

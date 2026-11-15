@@ -252,7 +252,17 @@
     "danger_text": "#FFFBF4",
     "link": "#874431",
     "clay_text": "#9A3F27",
-    "placeholder": "#655E55"
+    "placeholder": "#655E55",
+    "disabled_text": "#7D7569"
+  },
+  "status_paper": {
+    "_note": "0.5.0: the status dots for paper (Kit.paperDot, dot_<family>_paper.png): each family's fill darkened to at least 3:1 (a mark) on every paper surface in semantic_contrast._surfaces. The plain status colours are tuned for the dark HUD; idle and done were about 2:1 on paper. PaperContrastTest checks them.",
+    "idle": "#847B6E",
+    "thinking": "#95781D",
+    "working": "#278986",
+    "waiting": "#CE562F",
+    "error": "#C2413B",
+    "done": "#668361"
   },
   "semantic_contrast": {
     "_note": "ui/polish-1: every semantic text token against every paper surface it is drawn on (PaperContrastTest recomputes this). muted on the selected fill passes; muted over a translucent clay wash (e.g. 0x30B4553A) does not, so selected rows use semantic.selected. placeholder (a field's empty-state words) is muted: ink_ui.ghost_on_paper #BCAD95 was 1.9:1 on the field; ghost_on_paper stays for the typed-ahead completion only.",

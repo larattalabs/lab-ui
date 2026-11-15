@@ -48,12 +48,23 @@ public final class Panels {
 	public static void header(GuiGraphicsExtractor g, Font font, String title, int x, int y, int w) {
 		sprite(g, Kit.HEADER, x, y, w, 14);
 		Kit.Padding p = Kit.padding("header");
-		text(g, font, TextUtil.ellipsize(font, title, w - p.left() - p.right()), x + p.left(), y + p.top() + 1, UiStyle.color("paper.text"));
+		text(g, font, TextUtil.ellipsize(font, title, w - p.left() - p.right()), x + p.left(), headerTextY(y), UiStyle.color("paper.text"));
 	}
 
-	/** The y at which {@link #header} draws its title, for text that must share its baseline. Since the release after 0.4.0. */
+	/**
+	 * The y at which {@link #header} draws its title, for text that must share its baseline. Since 0.4.1. 0.5.0: one pixel higher, so a
+	 * descender (g, y, p) ends a pixel above the clay rule instead of on it (the title read as sitting on the rule).
+	 */
 	public static int headerTextY(int y) {
-		return y + Kit.padding("header").top() + 1;
+		return y + Kit.padding("header").top();
+	}
+
+	/**
+	 * The strip's usable band above its clay rule (0.5.0): {top, height} for controls that sit in the header (a pill, a "Jobs (K)" box), so they
+	 * never cross the rule. The rule is the strip's last 3 px.
+	 */
+	public static int[] headerBand(int y) {
+		return new int[] {y + 1, 14 - 3 - 1};
 	}
 
 	/**
@@ -103,9 +114,9 @@ public final class Panels {
 	public static void button(GuiGraphicsExtractor g, Font font, String label, int x, int y, int w, boolean primary, boolean hovered,
 		boolean disabled) {
 		String state = disabled ? "disabled" : hovered ? "hover" : "normal";
-		sprite(g, Kit.button(primary, state), x, y, w, 20);
+		sprite(g, Kit.button(primary && !disabled, state), x, y, w, 20);
 		// primary label: panel_hi (cream) on the clay body; "palette.ui.highlight" IS the clay, so a label drawn in it vanished
-		int color = disabled ? UiStyle.color("paper.disabled") : primary ? UiStyle.color("palette.ui.panel_hi", 0xFFFFFBF4) : UiStyle.color("paper.text");
+		int color = disabled ? UiStyle.disabledText() : primary ? UiStyle.color("palette.ui.panel_hi", 0xFFFFFBF4) : UiStyle.color("paper.text");
 		String l = TextUtil.ellipsize(font, label, w - 12);
 		text(g, font, l, x + (w - font.width(l)) / 2, y + 6, color);
 	}
@@ -114,6 +125,11 @@ public final class Panels {
 	public static void dot(GuiGraphicsExtractor g, String family, int x, int y, boolean halo) {
 		int s = halo ? 11 : 7;
 		sprite(g, Kit.dot(family, halo), x, y, s, s);
+	}
+
+	/** A 7x7 status dot on paper ({@link Kit#paperDot}, at least 3:1 on every paper surface), top-left at x,y. Since 0.5.0. */
+	public static void paperDot(GuiGraphicsExtractor g, String family, int x, int y) {
+		sprite(g, Kit.paperDot(family), x, y, 7, 7);
 	}
 
 	/** 6 px progress bar, {@code p} in 0..1, fill tint brass|clay|red|sage|teal. */

@@ -375,8 +375,16 @@ Steward's kit is a port of Architect's, which is a port of AgentCraft's. Both ma
 | `<mod>.client.text.TextModel`, `TextFieldView`, `TextKeys` (0.2.0) | `dev.larattalabs.labui.client.text.*`: identical API |
 | `<mod>.client.hud.Toasts` (0.2.0) | `dev.larattalabs.labui.client.hud.Toasts`: see "What changed in 0.2.0" |
 | Architect's `OwnedConfirm`, CrateScreen's Deconstruct two-press | `ConfirmArm` (keyed, pure) and the `Confirm` button |
+| `<mod>.client.ui.HasParent` (0.5.0) | `dev.larattalabs.labui.client.ui.HasParent`: identical |
+| `<mod>.client.ClientEnv`'s readers (0.5.0) | `dev.larattalabs.labui.client.env.ClientEnv`: `raw`, `flag`, `intValue`, `DEV_RUN`; `shotsDir(overrideEnv, fallbackDir)` takes the mod's names |
+| `<mod>.client.ui.ScreenPause` (0.5.0) | `dev.larattalabs.labui.client.env.ScreenPause`: an instance per mod, `new ScreenPause(devBridge, "ARCHITECT_PAUSE")` |
+| `<mod>.client.hud.Keys.label/readable/matches` (0.5.0) | `dev.larattalabs.labui.client.ui.KeyLabels`: identical; each mod keeps registering its own mappings |
+| Architect's SetDialog and editor steppers (0.5.0) | `dev.larattalabs.labui.client.widget.Stepper` (math in `ui.Steps`) |
 
-Here `<mod>` is `dev.larattalabs.architect` or `dev.larattalabs.steward`. Not in lab-ui, so keep your own: `HasParent` and `ScreenPause` (they read each mod's own environment).
+Here `<mod>` is `dev.larattalabs.architect` or `dev.larattalabs.steward`. Seams of the 0.5.0 moves: each mod keeps its own environment
+*names* (`ARCHITECT_PAUSE`, `ARCHITECT_SHOTS_DIR`, the screenshot folder) and its own DevBridge flag, and passes them in; `ScreenPause` is
+an instance instead of a static class, so each mod holds one. A mod's QA that checks `instanceof <mod>.client.ui.HasParent` must check
+lab-ui's interface once its screens move to it.
 
 ### What changed in the move
 

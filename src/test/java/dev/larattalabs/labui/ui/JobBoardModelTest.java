@@ -192,4 +192,42 @@ class JobBoardModelTest {
 		assertEquals("12 min ago", JobBoardModel.age(NOW - 12 * 60_000, NOW));
 		assertEquals("1 h 5 min ago", JobBoardModel.age(NOW - 65 * 60_000, NOW));
 	}
+
+	// ---- 0.5.0: ideas and offers (Steward S-J4)
+
+	@Test
+	void anIdeaGroupsUnderIdeasNeverWaitsAndShowsOnTheIdlePill() {
+		JobRow idea = JobRow.builder("s:idea/1", "idea", "A mill by the river", JobState.QUEUED).offer(true).created(5).build();
+		JobRow run = row("a:1", JobState.RUNNING, 3);
+		List<JobRow> rows = List.of(idea, run);
+		assertTrue(idea.idea());
+		assertFalse(idea.waiting());
+		assertEquals(JobBoardModel.Group.IDEAS, JobBoardModel.group(idea));
+		assertEquals(1, JobBoardModel.counts(rows).get(Filter.IDEAS));
+		assertEquals(List.of("#state:ideas", "s:idea/1", "#state:running", "a:1"),
+			keys(JobBoardModel.lines(rows, Filter.ALL, GroupBy.STATE, m -> m, k -> false, k -> false)));
+		assertNull(JobBoardModel.pillText(rows));
+		assertEquals("1 idea for you · A mill by the river", JobBoardModel.pillIdleText(rows));
+	}
+
+	@Test
+	void theNeedsYouPillWinsOverIdeasAndEndedIdeasAreNotIdeas() {
+		JobRow idea = JobRow.builder("s:idea/1", "idea", "Mill", JobState.QUEUED).offer(true).created(5).build();
+		JobRow wait = row("a:2", JobState.NEEDS_YOU, 4);
+		assertNull(JobBoardModel.pillIdleText(List.of(idea, wait)));
+		JobRow done = JobRow.builder("s:idea/2", "idea", "Old", JobState.DONE).offer(true).build();
+		assertFalse(done.idea());
+		assertNull(JobBoardModel.pillIdleText(List.of(done)));
+		// an offer marked as needing the player is a need, not an idea
+		JobRow asked = JobRow.builder("s:idea/3", "idea", "Asked", JobState.QUEUED).offer(true).needsYou(true).build();
+		assertFalse(asked.idea());
+		assertEquals(JobBoardModel.Group.NEEDS_YOU, JobBoardModel.group(asked));
+	}
+
+	@Test
+	void theOldConstructorStillBuildsARowWithNoOffer() {
+		JobRow r = new JobRow("a:x", "", "design", "T", JobState.RUNNING, "", false, 0, 0, "", null, 0, null, null, 0, 0, null, null, null, null);
+		assertFalse(r.offer());
+		assertFalse(r.withMod("m").offer());
+	}
 }

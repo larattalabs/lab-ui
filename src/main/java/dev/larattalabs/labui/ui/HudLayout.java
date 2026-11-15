@@ -39,9 +39,18 @@ public final class HudLayout {
 	public record Frame(int guiWidth, int guiHeight, boolean survivalBars) {
 	}
 
-	/** Bottoms of vanilla's pieces this frame (0 = not shown), and the "Now playing" toast's width (top left). */
-	public record Vanilla(int bossBottom, int effectsBottom, int toastsBottom, int nowPlayingBottom, int nowPlayingWidth) {
-		public static final Vanilla NONE = new Vanilla(0, 0, 0, 0, 0);
+	/**
+	 * Bottoms of vanilla's pieces this frame (0 = not shown), the "Now playing" toast's width (top left) and (0.5.0) the chat column's
+	 * visible rect at the bottom left: its right edge and its top ({@code chatRight} 0 = no chat line shows).
+	 */
+	public record Vanilla(int bossBottom, int effectsBottom, int toastsBottom, int nowPlayingBottom, int nowPlayingWidth, int chatRight,
+		int chatTop) {
+		public static final Vanilla NONE = new Vanilla(0, 0, 0, 0, 0, 0, 0);
+
+		/** The 0.3.0 constructor: no chat. */
+		public Vanilla(int bossBottom, int effectsBottom, int toastsBottom, int nowPlayingBottom, int nowPlayingWidth) {
+			this(bossBottom, effectsBottom, toastsBottom, nowPlayingBottom, nowPlayingWidth, 0, 0);
+		}
 
 		/** With "Now playing" at vanilla's default toast width (160) when shown. */
 		public Vanilla(int bossBottom, int effectsBottom, int toastsBottom, int nowPlayingBottom) {
@@ -121,9 +130,19 @@ public final class HudLayout {
 			List<Integer> live = measureAll(ids, m, Math.max(0, gw - 16), wants);
 			int total = totalWanted(live, wants);
 			int bottom = top + total <= gh - BOTTOM_ABOVE ? gh - BOTTOM_ABOVE : Math.max(top, floor);
+			java.util.function.IntUnaryOperator xOf = (w) -> (gw - w) / 2;
+			// 0.5.0: clear of vanilla's chat column (UI-AUDIT 9): lift the zone above the visible chat lines when it fits there, else
+			// move its pieces right of the chat column when they fit, else leave it (an open chat taller than the screen allows)
+			int[] chat = chatAvoid(gw, top, bottom, total, live, wants, v);
+			if (chat[0] == 1) {
+				bottom = chat[1];
+			} else if (chat[0] == 2) {
+				int minX = v.chatRight() + GAP;
+				xOf = (w) -> Math.max((gw - w) / 2, minX);
+			}
 			int space = bottom - top;
 			zones.put(HudZone.BOTTOM_CENTER, new Rect(0, top, gw, space));
-			place(HudZone.BOTTOM_CENTER, live, elems, wants, bottom, false, space, slots, hidden, overflow, (w) -> (gw - w) / 2);
+			place(HudZone.BOTTOM_CENTER, live, elems, wants, bottom, false, space, slots, hidden, overflow, xOf);
 		}
 		// ---- the toast column's claim: what its pieces must show at least (a need-you toast's title row) comes before the
 		// top-centre status pieces that cross the column; they start below it and collapse first
@@ -303,6 +322,31 @@ public final class HudLayout {
 			place(z, live, elems, wants, start, true, limit - start, slots, hidden, overflow, left ? (w) -> LEFT_X : (w) -> gw - TOAST_MARGIN - w);
 		}
 		return new Layout(List.copyOf(slots), List.copyOf(hidden), zones, List.copyOf(overflow));
+	}
+
+	/**
+	 * How BOTTOM_CENTER clears the chat (0.5.0): {0, 0} nothing to do (no chat, or no piece crosses it), {1, newBottom} lift the zone
+	 * so it ends {@link #GAP} above the chat's top, {2, 0} move pieces right of the chat column, {3, 0} neither fits.
+	 */
+	static int[] chatAvoid(int gw, int top, int bottom, int total, List<Integer> live, Map<Integer, Want> wants, Vanilla v) {
+		if (v.chatRight() <= 0 || live.isEmpty() || bottom <= v.chatTop() - GAP) {
+			return new int[] {0, 0};
+		}
+		int maxW = 0;
+		for (int i : live) {
+			maxW = Math.max(maxW, wants.get(i).w());
+		}
+		if ((gw - maxW) / 2 >= v.chatRight() + GAP) {
+			return new int[] {0, 0};
+		}
+		int lifted = v.chatTop() - GAP;
+		if (lifted - total >= top) {
+			return new int[] {1, lifted};
+		}
+		if (v.chatRight() + GAP + maxW <= gw - GAP) {
+			return new int[] {2, 0};
+		}
+		return new int[] {3, 0};
 	}
 
 	static int[] freeRun(int top, int limit, List<Rect> obstacles, int want) {
