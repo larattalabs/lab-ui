@@ -37,6 +37,9 @@ anything below. From LEFTOVERS "lab-ui L-0.5": UI-AUDIT items 9 and 15, Architec
 - `TextFieldView`: a focused, empty field's placeholder starts 3 px in (`PLACEHOLDER_INSET`), so the caret is not drawn over it.
 - `ScrollList` no longer shifts a selected row's content 2 px right; the Jobs panel's selected row stays put.
 - `UiBits.dotPill` and the Jobs panel's rows use the paper dots.
+- `PickerScreen`: on a short detail pane (under 200 px, GUI scale 4) the big thumbnail is a fifth of the pane, not a third
+  (`PickerScreen.detailThumbH`), so a consumer's extra buttons no longer cover every detail line; "Compare with… (later)" uses
+  `disabledText()`.
 
 
 ## 0.4.1

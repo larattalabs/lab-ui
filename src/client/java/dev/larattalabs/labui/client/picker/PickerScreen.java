@@ -630,6 +630,14 @@ public class PickerScreen extends Screen {
 
 	// ------------------------------------------------------------------ detail
 
+	/**
+	 * The detail pane's big thumbnail height for a pane {@code h} tall (cards view): a third, at most 60; 0.5.0: a fifth on a short pane
+	 * (under 200 px, GUI scale 4), so a consumer's extra buttons above Pick no longer cover every detail line (Architect's Style browser).
+	 */
+	public static int detailThumbH(int h) {
+		return Math.min(60, h < 200 ? h / 5 : h / 3);
+	}
+
 	private void drawDetail(GuiGraphicsExtractor g, Font f, int x, int y, int w, int h, int mx, int my) {
 		PickerEntry e = detailEntry();
 		int pad = 6;
@@ -642,7 +650,7 @@ public class PickerScreen extends Screen {
 			g.text(f, TextUtil.ellipsize(f, "Nothing to show", cw), cx, cy, UiStyle.mutedText(), false);
 			return;
 		}
-		int bigH = cards() ? Math.min(60, h / 3) : 30;
+		int bigH = cards() ? detailThumbH(h) : 30;
 		drawThumb(g, f, e, cx, cy, cw, bigH, 32);
 		cy += bigH + 5;
 		g.text(f, TextUtil.ellipsize(f, e.label(), cw), cx, cy, UiStyle.link(), false);
@@ -681,7 +689,7 @@ public class PickerScreen extends Screen {
 			}
 		}
 		if (cards() && cy + 9 <= bottom) {
-			g.text(f, TextUtil.ellipsize(f, "Compare with… (later)", cw), cx, cy + 2, UiStyle.color("paper.disabled", 0xFFA39B8E), false);
+			g.text(f, TextUtil.ellipsize(f, "Compare with… (later)", cw), cx, cy + 2, UiStyle.disabledText(), false);
 		}
 		boolean isFav = model.isFavourite(e.id());
 		fav.label(isFav ? "★ Unfavourite" : "☆ Favourite");
