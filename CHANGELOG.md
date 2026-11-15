@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.5.0 (unreleased; branch feat/0.5)
+## 0.5.0 (2026-11-15)
 
 A minor release: additive except for the visible default changes listed under **Looks**. Every 0.4.x class and method keeps
 working (`JobRow`'s and `HudLayout.Vanilla`'s old constructors stay). Consumers move their range to `>=0.5.0 <0.6.0` when they use
