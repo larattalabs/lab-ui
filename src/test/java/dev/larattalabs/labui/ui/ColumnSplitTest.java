@@ -35,4 +35,11 @@ class ColumnSplitTest {
 	void tooNarrowForTwoColumnsDropsTheStep() {
 		assertArrayEquals(new int[] {40, 0}, ColumnSplit.split(100, 100, 40, 8));
 	}
+
+	@Test
+	void fixedColumnsStartAtTheSameXOnEveryRow() {
+		assertArrayEquals(new int[] {106, 86}, ColumnSplit.fixed(true, 200, 8));
+		assertArrayEquals(new int[] {200, 0}, ColumnSplit.fixed(false, 200, 8));
+		assertArrayEquals(new int[] {40, 0}, ColumnSplit.fixed(true, 40, 8));
+	}
 }

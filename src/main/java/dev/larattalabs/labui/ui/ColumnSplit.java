@@ -40,4 +40,19 @@ public final class ColumnSplit {
 		}
 		return new int[] {titleMin, avail - titleMin};
 	}
+
+	/**
+	 * A table split: {titleW, secondW} with the second column starting at the same x on every row ({@link #TITLE_SHARE} of the room
+	 * goes to the title whatever its length), so rows scan as columns. No second text, or a second column under {@link #MIN_SECOND},
+	 * gives the title the row.
+	 */
+	public static int[] fixed(boolean hasSecond, int room, int gap) {
+		room = Math.max(0, room);
+		int avail = room - gap;
+		int titleW = (int) Math.round(avail * TITLE_SHARE);
+		if (!hasSecond || avail - titleW < MIN_SECOND) {
+			return new int[] {room, 0};
+		}
+		return new int[] {titleW, avail - titleW};
+	}
 }

@@ -415,4 +415,15 @@ class HudLayoutTest {
 		Layout clear = sc.layout(new Frame(960, 540, false), new Vanilla(0, 0, 0, 0, 0, 200, 300), List.of());
 		assertEquals(none.slot(p), clear.slot(p));
 	}
+
+	@Test
+	void atGuiFourTheCollapsiblePanelLiftsAboveChatAtItsLeastHeight() {
+		Scene sc = new Scene();
+		int p = sc.add(HudZone.BOTTOM_CENTER, 100, maxW -> new Want(Math.min(420, maxW), 96, 46, false)); // the placement panel
+		int chatTop = 270 - 40 - 3 * 9 - 2;
+		Layout l = sc.layout(new Frame(480, 270, false), new Vanilla(0, 0, 0, 0, 0, 332, chatTop), List.of());
+		Slot s = l.slot(p);
+		assertTrue(s.rect().bottom() <= chatTop - HudLayout.GAP, s + " ends on the chat");
+		assertTrue(s.collapsed(), "it gave up rows to clear the chat");
+	}
 }

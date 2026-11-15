@@ -436,7 +436,8 @@ public class JobsScreen extends Screen {
 		g.text(f, spend, right - spW, ty, 0xFF5A4636, false);
 		int room = right - spW - 8 - cx;
 		// 0.5.0: the title and the step in their own columns (S-J4 / design-critic): the step was cut first and vanished on narrow rows
-		int[] cols = dev.larattalabs.labui.ui.ColumnSplit.split(f.width(r.title()), r.step().isEmpty() ? 0 : f.width(r.step()), room, 8);
+		// a table: the step column starts at the same x on every row (design-critic, slice UI)
+		int[] cols = dev.larattalabs.labui.ui.ColumnSplit.fixed(!r.step().isEmpty(), room, 8);
 		String title = TextUtil.ellipsize(f, r.title(), cols[0]);
 		g.text(f, title, cx, ty, l.depth() > 0 ? 0xFF5A4636 : UiStyle.INK, false);
 		if (cols[1] > 0) {

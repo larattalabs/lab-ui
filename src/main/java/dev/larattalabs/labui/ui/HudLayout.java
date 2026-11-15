@@ -326,7 +326,8 @@ public final class HudLayout {
 
 	/**
 	 * How BOTTOM_CENTER clears the chat (0.5.0): {0, 0} nothing to do (no chat, or no piece crosses it), {1, newBottom} lift the zone
-	 * so it ends {@link #GAP} above the chat's top, {2, 0} move pieces right of the chat column, {3, 0} neither fits.
+	 * so it ends {@link #GAP} above the chat's top (whole, else with its pieces collapsed to their least height when moving right does
+	 * not fit either), {2, 0} move pieces right of the chat column, {3, 0} none fits.
 	 */
 	static int[] chatAvoid(int gw, int top, int bottom, int total, List<Integer> live, Map<Integer, Want> wants, Vanilla v) {
 		if (v.chatRight() <= 0 || live.isEmpty() || bottom <= v.chatTop() - GAP) {
@@ -345,6 +346,15 @@ public final class HudLayout {
 		}
 		if (v.chatRight() + GAP + maxW <= gw - GAP) {
 			return new int[] {2, 0};
+		}
+		// GUI 4: neither fits whole, so lift it with its pieces collapsed to their least height (the placement panel's KEEP rows)
+		int least = 0;
+		for (int i : live) {
+			least += Math.max(0, Math.min(wants.get(i).h(), wants.get(i).minH()));
+		}
+		least += GAP * (live.size() - 1);
+		if (lifted - least >= top) {
+			return new int[] {1, lifted};
 		}
 		return new int[] {3, 0};
 	}
