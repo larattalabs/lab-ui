@@ -59,12 +59,17 @@ public final class Panels {
 		return y + Kit.padding("header").top();
 	}
 
+	/** The header strip's height (its last {@link #HEADER_RULE} px are the clay rule). Since 0.5.0. */
+	public static final int HEADER_H = 14;
+	/** The clay rule at the bottom of the header strip. Since 0.5.0. */
+	public static final int HEADER_RULE = 3;
+
 	/**
-	 * The strip's usable band above its clay rule (0.5.0): {top, height} for controls that sit in the header (a pill, a "Jobs (K)" box), so they
-	 * never cross the rule. The rule is the strip's last 3 px.
+	 * The strip's band above its clay rule (0.5.0): {top, height} = {y, 11}, for controls placed in the header (an 11 px pill, an 11 px
+	 * "Jobs (K)" box) so they never sit on the rule, as Architect's title bar did.
 	 */
 	public static int[] headerBand(int y) {
-		return new int[] {y + 1, 14 - 3 - 1};
+		return new int[] {y, HEADER_H - HEADER_RULE};
 	}
 
 	/**
