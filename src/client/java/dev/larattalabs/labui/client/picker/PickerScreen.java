@@ -682,14 +682,16 @@ public class PickerScreen extends Screen {
 		}
 		lines.addAll(e.details());
 		cy += 2;
+		// 0.5.0: every wrapped line in one list, so the last one that fits ends in "…" when more is cut (it read as a bug)
+		List<String> wrapped = new ArrayList<>();
 		for (String line : lines) {
-			for (String l : TextUtil.wrapPlain(f, line, cw)) {
-				if (cy + 9 > bottom) {
-					break;
-				}
-				g.text(f, l, cx, cy, UiStyle.INK, false);
-				cy += 10;
-			}
+			wrapped.addAll(TextUtil.wrapPlain(f, line, cw));
+		}
+		for (int i = 0; i < wrapped.size() && cy + 9 <= bottom; i++) {
+			boolean lastFits = cy + 10 + 9 > bottom;
+			String l = lastFits && i + 1 < wrapped.size() ? TextUtil.ellipsize(f, wrapped.get(i) + " …", cw) : wrapped.get(i);
+			g.text(f, l, cx, cy, UiStyle.INK, false);
+			cy += 10;
 		}
 		if (cards() && cy + 9 <= bottom) {
 			g.text(f, TextUtil.ellipsize(f, "Compare with… (later)", cw), cx, cy + 2, UiStyle.disabledText(), false);
