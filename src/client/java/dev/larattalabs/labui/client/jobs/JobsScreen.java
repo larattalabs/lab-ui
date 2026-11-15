@@ -434,7 +434,7 @@ public class JobsScreen extends Screen {
 		int spW = f.width(spend);
 		int right = x + w - 4;
 		g.text(f, spend, right - spW, ty, 0xFF5A4636, false);
-		int room = right - spW - 8 - cx;
+		int room = right - Math.max(spW, f.width("$00.00")) - 8 - cx; // 0.5.0: a steady spend column, so the step column lines up
 		// 0.5.0: the title and the step in their own columns (S-J4 / design-critic): the step was cut first and vanished on narrow rows
 		// a table: the step column starts at the same x on every row (design-critic, slice UI)
 		int[] cols = dev.larattalabs.labui.ui.ColumnSplit.fixed(!r.step().isEmpty(), room, 8);

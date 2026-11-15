@@ -134,7 +134,7 @@ public final class HudLayout {
 			// 0.5.0: clear of vanilla's chat column (UI-AUDIT 9): lift the zone above the visible chat lines when it fits there, else
 			// move its pieces right of the chat column when they fit, else leave it (an open chat taller than the screen allows)
 			int[] chat = chatAvoid(gw, top, bottom, total, live, wants, v);
-			if (chat[0] == 1) {
+			if (chat[0] == 1 || chat[0] == 3) {
 				bottom = chat[1];
 			} else if (chat[0] == 2) {
 				int minX = v.chatRight() + GAP;
@@ -327,7 +327,7 @@ public final class HudLayout {
 	/**
 	 * How BOTTOM_CENTER clears the chat (0.5.0): {0, 0} nothing to do (no chat, or no piece crosses it), {1, newBottom} lift the zone
 	 * so it ends {@link #GAP} above the chat's top (whole, else with its pieces collapsed to their least height when moving right does
-	 * not fit either), {2, 0} move pieces right of the chat column, {3, 0} none fits.
+	 * not fit either), {2, 0} move pieces right of the chat column, {3, newBottom} none fits: the zone rises as far as its top allows.
 	 */
 	static int[] chatAvoid(int gw, int top, int bottom, int total, List<Integer> live, Map<Integer, Want> wants, Vanilla v) {
 		if (v.chatRight() <= 0 || live.isEmpty() || bottom <= v.chatTop() - GAP) {
@@ -356,7 +356,8 @@ public final class HudLayout {
 		if (lifted - least >= top) {
 			return new int[] {1, lifted};
 		}
-		return new int[] {3, 0};
+		// nothing clears it: rise as far as the zone allows (its top stays below the crosshair), so the least of it covers the chat
+		return new int[] {3, Math.min(bottom, top + total)};
 	}
 
 	static int[] freeRun(int top, int limit, List<Rect> obstacles, int want) {

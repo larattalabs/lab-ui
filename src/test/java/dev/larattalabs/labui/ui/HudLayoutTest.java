@@ -399,11 +399,14 @@ class HudLayoutTest {
 	}
 
 	@Test
-	void aPanelThatFitsNeitherWayStaysCentred() {
+	void aPanelThatFitsNeitherWayStaysCentredAndRisesAsFarAsTheZoneAllows() {
 		Scene sc = new Scene();
 		int p = sc.add(HudZone.BOTTOM_CENTER, 100, fixed(420, 96));
+		Layout none = sc.layout(new Frame(480, 270, false), Vanilla.NONE, List.of());
 		Layout l = sc.layout(new Frame(480, 270, false), new Vanilla(0, 0, 0, 0, 0, 330, 40), List.of());
 		assertEquals((480 - 420) / 2, l.slot(p).x());
+		assertTrue(l.slot(p).y() <= none.slot(p).y(), "never lower than without chat");
+		assertTrue(l.slot(p).y() >= 270 / 2 + 8, "its top stays below the crosshair");
 	}
 
 	@Test
