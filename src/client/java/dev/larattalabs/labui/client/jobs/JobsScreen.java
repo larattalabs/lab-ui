@@ -337,6 +337,9 @@ public class JobsScreen extends Screen {
 		int chipsW = 0;
 		for (Filter fl : Filter.values()) {
 			Chip c = filterChips.get(fl).label(fl.label + " " + counts.get(fl)).selected(filter == fl);
+			if (hiddenFilter(fl, counts)) {
+				continue;
+			}
 			chipsW += c.width(f) + 4;
 		}
 		if (chipsW + rightW + f.width(gl) + 12 > w) {
@@ -346,6 +349,10 @@ public class JobsScreen extends Screen {
 		int limit = x + w - rightW - (label ? f.width(gl) + 8 : 0) - 8;
 		for (Filter fl : Filter.values()) {
 			Chip c = filterChips.get(fl);
+			if (hiddenFilter(fl, counts)) {
+				c.hide();
+				continue;
+			}
 			int cw = c.width(f);
 			if (cx + cw > limit) {
 				cw = Math.max(24, limit - cx);
@@ -363,6 +370,11 @@ public class JobsScreen extends Screen {
 		}
 		rx += byState.draw(g, f, rx, y, mx, my) + 4;
 		byMod.draw(g, f, rx, y, mx, my);
+	}
+
+	/** The Ideas chip (0.5.0) only while some mod publishes ideas, or while it is the filter. */
+	private boolean hiddenFilter(Filter fl, Map<Filter, Integer> counts) {
+		return fl == Filter.IDEAS && counts.get(fl) == 0 && filter != fl;
 	}
 
 	private static String family(JobState s) {
@@ -409,7 +421,8 @@ public class JobsScreen extends Screen {
 		if (r.waiting() || lifted) {
 			UiBits.pulsingDot(g, "waiting", cx, y + (h - 7) / 2);
 		} else {
-			Panels.dot(g, family(r.state()), cx, y + (h - 7) / 2, false);
+			// 0.5.0: the paper dots (3:1 on the list's fills); an idea is idle, not running
+			Panels.paperDot(g, r.idea() ? "idle" : family(r.state()), cx, y + (h - 7) / 2);
 		}
 		cx += 11;
 		int kw = Math.min(kindW, Math.max(30, w / 6));
@@ -421,12 +434,14 @@ public class JobsScreen extends Screen {
 		int spW = f.width(spend);
 		int right = x + w - 4;
 		g.text(f, spend, right - spW, ty, 0xFF5A4636, false);
-		int room = right - spW - 8 - cx;
-		String title = TextUtil.ellipsize(f, r.title(), room);
+		int room = right - Math.max(spW, f.width("$00.00")) - 8 - cx; // 0.5.0: a steady spend column, so the step column lines up
+		// 0.5.0: the title and the step in their own columns (S-J4 / design-critic): the step was cut first and vanished on narrow rows
+		// a table: the step column starts at the same x on every row (design-critic, slice UI)
+		int[] cols = dev.larattalabs.labui.ui.ColumnSplit.fixed(!r.step().isEmpty(), room, 8);
+		String title = TextUtil.ellipsize(f, r.title(), cols[0]);
 		g.text(f, title, cx, ty, l.depth() > 0 ? 0xFF5A4636 : UiStyle.INK, false);
-		int used = f.width(title);
-		if (!r.step().isEmpty() && room - used > 24) {
-			g.text(f, TextUtil.ellipsize(f, " · " + r.step(), room - used), cx + used, ty, UiStyle.mutedText(), false);
+		if (cols[1] > 0) {
+			g.text(f, TextUtil.ellipsize(f, r.step(), cols[1]), cx + cols[0] + 8, ty, UiStyle.mutedText(), false);
 		}
 	}
 

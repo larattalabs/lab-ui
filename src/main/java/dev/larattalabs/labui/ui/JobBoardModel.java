@@ -31,9 +31,9 @@ import org.jspecify.annotations.Nullable;
  * text, and the usage-limit banner time.
  */
 public final class JobBoardModel {
-	/** Panel groups, in order: Needs you first, then what runs, what a limit holds, what ended. */
+	/** Panel groups, in order: Needs you first, then ideas for the player (0.5.0), what runs, what a limit holds, what ended. */
 	public enum Group {
-		NEEDS_YOU("Needs you"), RUNNING("Running"), HELD("Held"), ENDED("Ended");
+		NEEDS_YOU("Needs you"), IDEAS("Ideas"), RUNNING("Running"), HELD("Held"), ENDED("Ended");
 
 		public final String label;
 
@@ -44,7 +44,7 @@ public final class JobBoardModel {
 
 	/** The filter chips. */
 	public enum Filter {
-		ALL("All"), NEEDS_YOU("Needs you"), RUNNING("Running"), HELD("Held"), ENDED("Ended");
+		ALL("All"), NEEDS_YOU("Needs you"), IDEAS("Ideas"), RUNNING("Running"), HELD("Held"), ENDED("Ended");
 
 		public final String label;
 
@@ -255,6 +255,9 @@ public final class JobBoardModel {
 		if (r.waiting()) {
 			return Group.NEEDS_YOU;
 		}
+		if (r.idea()) {
+			return Group.IDEAS;
+		}
 		return switch (r.state()) {
 			case NEEDS_YOU -> Group.NEEDS_YOU;
 			case RUNNING, QUEUED -> Group.RUNNING;
@@ -391,6 +394,33 @@ public final class JobBoardModel {
 			return null;
 		}
 		return w.size() + (w.size() == 1 ? " job needs you" : " jobs need you") + " · " + w.get(0).title();
+	}
+
+	/** Roots that are ideas or offers for the player (0.5.0; {@link JobRow#idea}), newest first; a root waiting through a child is not. */
+	public static List<JobRow> ideaRoots(List<JobRow> rows) {
+		List<JobRow> out = new ArrayList<>();
+		for (JobRow r : roots(rows)) {
+			if (r.idea() && !rootWaiting(r, descendants(rows, r.id()))) {
+				out.add(r);
+			}
+		}
+		out.sort(NEWEST_FIRST);
+		return out;
+	}
+
+	/**
+	 * The idle pill (0.5.0): "1 idea for you · Willow Bend", "3 ideas for you · Market stall" when nothing waits and ideas do; null otherwise
+	 * ({@link #pillText} wins while anything waits). Ideas never pulse or say "need you".
+	 */
+	public static @Nullable String pillIdleText(List<JobRow> rows) {
+		if (!waitingRoots(rows).isEmpty()) {
+			return null;
+		}
+		List<JobRow> ideas = ideaRoots(rows);
+		if (ideas.isEmpty()) {
+			return null;
+		}
+		return ideas.size() + (ideas.size() == 1 ? " idea for you" : " ideas for you") + " · " + ideas.get(0).title();
 	}
 
 	/** True when any row is held by the usage limit (state HELD). */

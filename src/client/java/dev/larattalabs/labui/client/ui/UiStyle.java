@@ -105,6 +105,14 @@ public final class UiStyle {
 		return color("semantic.placeholder", 0xFF655E55);
 	}
 
+	/**
+	 * A disabled control's label (0.5.0): #7D7569, 3.5:1 on the disabled button and chip fills. Lighter than {@link #mutedText()} so a disabled
+	 * button still reads as off, but legible: {@code paper.disabled} #A39B8E was 2.1:1, and a disabled primary's cream label 1.6:1 on its pale clay.
+	 */
+	public static int disabledText() {
+		return color("semantic.disabled_text", 0xFF7D7569);
+	}
+
 	/** Fill of a selected row, cell or chip (with {@link #selectedEdge()} as its border or left bar). */
 	public static int selected() {
 		return color("semantic.selected", 0xFFF7D9C9);

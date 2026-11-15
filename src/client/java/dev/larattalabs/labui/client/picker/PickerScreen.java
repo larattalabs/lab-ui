@@ -630,6 +630,15 @@ public class PickerScreen extends Screen {
 
 	// ------------------------------------------------------------------ detail
 
+	/**
+	 * The detail pane's big thumbnail height for a pane {@code h} tall (cards view): a third, at most 60; 0.5.0: none on a short pane
+	 * (under 200 px, GUI scale 4; the selected card already shows it), so a consumer's extra buttons above Pick no longer cover every
+	 * detail line (Architect's Style browser). The name then starts at the pane's top padding.
+	 */
+	public static int detailThumbH(int h) {
+		return h < 200 ? 0 : Math.min(60, h / 3);
+	}
+
 	private void drawDetail(GuiGraphicsExtractor g, Font f, int x, int y, int w, int h, int mx, int my) {
 		PickerEntry e = detailEntry();
 		int pad = 6;
@@ -642,9 +651,11 @@ public class PickerScreen extends Screen {
 			g.text(f, TextUtil.ellipsize(f, "Nothing to show", cw), cx, cy, UiStyle.mutedText(), false);
 			return;
 		}
-		int bigH = cards() ? Math.min(60, h / 3) : 30;
-		drawThumb(g, f, e, cx, cy, cw, bigH, 32);
-		cy += bigH + 5;
+		int bigH = cards() ? detailThumbH(h) : 30;
+		if (bigH > 0) {
+			drawThumb(g, f, e, cx, cy, cw, bigH, 32);
+			cy += bigH + 5;
+		}
 		g.text(f, TextUtil.ellipsize(f, e.label(), cw), cx, cy, UiStyle.link(), false);
 		cy += 10;
 		if (e.subtitle() != null) {
@@ -671,17 +682,19 @@ public class PickerScreen extends Screen {
 		}
 		lines.addAll(e.details());
 		cy += 2;
+		// 0.5.0: every wrapped line in one list, so the last one that fits ends in "…" when more is cut (it read as a bug)
+		List<String> wrapped = new ArrayList<>();
 		for (String line : lines) {
-			for (String l : TextUtil.wrapPlain(f, line, cw)) {
-				if (cy + 9 > bottom) {
-					break;
-				}
-				g.text(f, l, cx, cy, UiStyle.INK, false);
-				cy += 10;
-			}
+			wrapped.addAll(TextUtil.wrapPlain(f, line, cw));
+		}
+		for (int i = 0; i < wrapped.size() && cy + 9 <= bottom; i++) {
+			boolean lastFits = cy + 10 + 9 > bottom;
+			String l = lastFits && i + 1 < wrapped.size() ? TextUtil.ellipsize(f, wrapped.get(i) + " …", cw) : wrapped.get(i);
+			g.text(f, l, cx, cy, UiStyle.INK, false);
+			cy += 10;
 		}
 		if (cards() && cy + 9 <= bottom) {
-			g.text(f, TextUtil.ellipsize(f, "Compare with… (later)", cw), cx, cy + 2, UiStyle.color("paper.disabled", 0xFFA39B8E), false);
+			g.text(f, TextUtil.ellipsize(f, "Compare with… (later)", cw), cx, cy + 2, UiStyle.disabledText(), false);
 		}
 		boolean isFav = model.isFavourite(e.id());
 		fav.label(isFav ? "★ Unfavourite" : "☆ Favourite");

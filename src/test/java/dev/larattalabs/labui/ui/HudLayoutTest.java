@@ -375,4 +375,58 @@ class HudLayoutTest {
 		assertEquals(HudLayout.LEFT_X, l.slot(lft).x());
 		assertEquals(960 - 6 - 80, l.slot(rgt).x());
 	}
+
+	// ---- 0.5.0: BOTTOM_CENTER keeps clear of vanilla's chat (UI-AUDIT 9)
+
+	@Test
+	void thePlacementPanelLiftsAboveAFewChatLines() {
+		Scene sc = new Scene();
+		int p = sc.add(HudZone.BOTTOM_CENTER, 100, fixed(420, 96));
+		int chatTop = 540 - 40 - 3 * 9;
+		Layout l = sc.layout(new Frame(960, 540, false), new Vanilla(0, 0, 0, 0, 0, 330, chatTop), List.of());
+		Slot s = l.slot(p);
+		assertEquals((960 - 420) / 2, s.x());
+		assertTrue(s.rect().bottom() <= chatTop - HudLayout.GAP, s + " ends on the chat");
+		noOverlap(l, new Rect(0, chatTop, 330, 540 - 40 - chatTop));
+	}
+
+	@Test
+	void aTallOpenChatMovesANarrowPanelRightOfIt() {
+		Scene sc = new Scene();
+		int p = sc.add(HudZone.BOTTOM_CENTER, 100, fixed(120, 60));
+		Layout l = sc.layout(new Frame(480, 270, false), new Vanilla(0, 0, 0, 0, 0, 330, 40), List.of());
+		assertEquals(330 + HudLayout.GAP, l.slot(p).x());
+	}
+
+	@Test
+	void aPanelThatFitsNeitherWayStaysCentredAndRisesAsFarAsTheZoneAllows() {
+		Scene sc = new Scene();
+		int p = sc.add(HudZone.BOTTOM_CENTER, 100, fixed(420, 96));
+		Layout none = sc.layout(new Frame(480, 270, false), Vanilla.NONE, List.of());
+		Layout l = sc.layout(new Frame(480, 270, false), new Vanilla(0, 0, 0, 0, 0, 330, 40), List.of());
+		assertEquals((480 - 420) / 2, l.slot(p).x());
+		assertTrue(l.slot(p).y() <= none.slot(p).y(), "never lower than without chat");
+		assertTrue(l.slot(p).y() >= 270 / 2 + 8, "its top stays below the crosshair");
+	}
+
+	@Test
+	void noChatOrAChatClearOfThePanelChangesNothing() {
+		Scene sc = new Scene();
+		int p = sc.add(HudZone.BOTTOM_CENTER, 100, fixed(200, 60));
+		Layout none = sc.layout(new Frame(960, 540, false), Vanilla.NONE, List.of());
+		// a narrow chat column left of a centred 200 px panel
+		Layout clear = sc.layout(new Frame(960, 540, false), new Vanilla(0, 0, 0, 0, 0, 200, 300), List.of());
+		assertEquals(none.slot(p), clear.slot(p));
+	}
+
+	@Test
+	void atGuiFourTheCollapsiblePanelLiftsAboveChatAtItsLeastHeight() {
+		Scene sc = new Scene();
+		int p = sc.add(HudZone.BOTTOM_CENTER, 100, maxW -> new Want(Math.min(420, maxW), 96, 46, false)); // the placement panel
+		int chatTop = 270 - 40 - 3 * 9 - 2;
+		Layout l = sc.layout(new Frame(480, 270, false), new Vanilla(0, 0, 0, 0, 0, 332, chatTop), List.of());
+		Slot s = l.slot(p);
+		assertTrue(s.rect().bottom() <= chatTop - HudLayout.GAP, s + " ends on the chat");
+		assertTrue(s.collapsed(), "it gave up rows to clear the chat");
+	}
 }

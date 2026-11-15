@@ -2,6 +2,7 @@ package dev.larattalabs.labui.client.hud;
 
 import dev.larattalabs.labui.LabUi;
 import dev.larattalabs.labui.mixin.client.BossHealthOverlayAccess;
+import dev.larattalabs.labui.mixin.client.ChatComponentAccess;
 import dev.larattalabs.labui.mixin.client.ToastInstanceAccess;
 import dev.larattalabs.labui.mixin.client.ToastManagerAccess;
 import dev.larattalabs.labui.ui.HudLayout;
@@ -9,7 +10,9 @@ import dev.larattalabs.labui.ui.VanillaHudMath;
 import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.components.ChatComponent;
 import net.minecraft.client.gui.components.toasts.Toast;
+import net.minecraft.client.multiplayer.chat.GuiMessage;
 import net.minecraft.client.gui.components.toasts.ToastManager;
 import net.minecraft.client.gui.screens.PauseScreen;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -26,13 +29,55 @@ final class VanillaHud {
 	private static final int[] NONE = {0, 0};
 	private static java.lang.reflect.@org.jspecify.annotations.Nullable Field nowPlayingField;
 	private static boolean bossFailed;
+	private static boolean chatFailed;
 
 	private VanillaHud() {
 	}
 
 	static HudLayout.Vanilla read(Minecraft mc, int guiHeight) {
 		int[] np = nowPlaying(mc);
-		return new HudLayout.Vanilla(boss(mc, guiHeight), effects(mc), toasts(mc), np[0], np[1]);
+		int[] chat = chat(mc, guiHeight);
+		return new HudLayout.Vanilla(boss(mc, guiHeight), effects(mc), toasts(mc), np[0], np[1], chat[0], chat[1]);
+	}
+
+	/**
+	 * {right, top} of the chat lines vanilla shows this frame (0.5.0), or {0, 0}: the newest lines still fading in (under 200 gui ticks
+	 * old) or, with the chat open, a page of them. Vanilla draws them from {@code guiHeight - 40} up, {@code getLineHeight() * chatScale}
+	 * each, {@code ChatComponent.getWidth(chatWidth)} wide plus its 4 px indent and background.
+	 */
+	private static int[] chat(Minecraft mc, int guiHeight) {
+		if (chatFailed) {
+			return NONE;
+		}
+		try {
+			ChatComponent c = mc.gui.hud.getChat();
+			List<GuiMessage.Line> lines = ((ChatComponentAccess) c).labui$trimmedMessages();
+			int n;
+			if (c.isChatFocused()) {
+				n = Math.min(lines.size(), c.getLinesPerPage());
+			} else {
+				int now = mc.gui.hud.getGuiTicks();
+				n = 0;
+				for (GuiMessage.Line l : lines) {
+					if (n >= c.getLinesPerPage() || now - l.addedTime() >= 200) {
+						break;
+					}
+					n++;
+				}
+			}
+			if (n == 0) {
+				return NONE;
+			}
+			double scale = mc.options.chatScale().get();
+			int lineH = (int) (9 * (mc.options.chatLineSpacing().get() + 1));
+			int right = (int) Math.ceil(ChatComponent.getWidth(mc.options.chatWidth().get()) + 12 * scale);
+			int top = (int) Math.floor(guiHeight - 40 - n * lineH * scale) - 2;
+			return new int[] {right, Math.max(0, top)};
+		} catch (RuntimeException | LinkageError e) {
+			chatFailed = true;
+			LabUi.LOGGER.warn("lab_ui: can't read vanilla's chat; the bottom-centre HUD zone ignores it", e);
+			return NONE;
+		}
 	}
 
 	private static int boss(Minecraft mc, int guiHeight) {

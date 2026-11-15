@@ -51,4 +51,24 @@ class PaperContrastTest {
 		// CLAY_DARK as text is 4.26:1 on paper and 3.76:1 on the inset: the reason this token exists
 		assertTrue(Contrast.ratio(Contrast.hex("#B4553A"), Contrast.hex("#E9E1D3")) < 4.5);
 	}
+
+	@Test
+	void everyPaperDotIsAtLeastThreeToOneOnEveryPaperSurface() throws Exception {
+		JsonObject root = OnDarkContrastTest.style();
+		JsonObject dots = root.getAsJsonObject("status_paper");
+		JsonObject surfaces = root.getAsJsonObject("semantic_contrast").getAsJsonObject("_surfaces");
+		for (String fam : new String[] {"idle", "thinking", "working", "waiting", "error", "done"}) {
+			int fg = Contrast.hex(dots.get(fam).getAsString());
+			for (Map.Entry<String, com.google.gson.JsonElement> s : surfaces.entrySet()) {
+				double r = Contrast.ratio(fg, Contrast.surface(s.getValue().getAsString()));
+				assertTrue(r >= 3.0, fam + " paper dot is " + r + ":1 on " + s.getKey());
+			}
+		}
+	}
+
+	@Test
+	void theDisabledLabelReadsOnTheDisabledFill() throws Exception {
+		int fg = Contrast.hex(OnDarkContrastTest.style().getAsJsonObject("semantic").get("disabled_text").getAsString());
+		assertTrue(Contrast.ratio(fg, Contrast.hex("#E9E1D3")) >= 3.0, "disabled_text on the disabled button fill");
+	}
 }

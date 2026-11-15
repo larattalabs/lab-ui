@@ -1,5 +1,47 @@
 # Changelog
 
+## 0.5.0 (2026-11-15)
+
+A minor release: additive except for the visible default changes listed under **Looks**. Every 0.4.x class and method keeps
+working (`JobRow`'s and `HudLayout.Vanilla`'s old constructors stay). Consumers move their range to `>=0.5.0 <0.6.0` when they use
+anything below. From LEFTOVERS "lab-ui L-0.5": UI-AUDIT items 9 and 15, Architect SD's leftovers, Steward S-J4's and S-UI-actions' asks.
+
+**New API**
+- `Stepper` (widget) and `Steps` (pure): kit Buttons at 18 px around a value, an optional name, a fixed value width, each end disabled
+  with a reason, Left/Right and -/+ while focused.
+- `Control.disabled(boolean, String reason)`, `disabledReason()`, `Control.reasonAt(mx, my, controls...)`: a disabled control says why;
+  `Tooltip.offer(Control, …)` shows the reason while it is disabled. The plain `disabled(boolean)` clears it.
+- `Toasts.clear()`; the stack also clears itself on disconnect (queued toasts outlived the world by up to 2 minutes).
+- `ToastStack.fitTitle(title, subject, w, m, dropTail)`: a need-you toast whose name would be cut drops " needs you" and keeps the
+  whole name ("Stilt Swamp Fishing Village", not "Stilt Swamp Fi… needs you"). `Toasts` uses it for need-you toasts.
+- Ideas: `JobRow.offer` (`Builder.offer(true)`), `JobRow.idea()`, `JobBoardModel.Group.IDEAS` / `Filter.IDEAS` ("Ideas", after Needs
+  you), `ideaRoots`, `pillIdleText`, and the idle pill (`JobBoard.showIdlePill`, default on): when nothing waits but ideas do, a still
+  idle dot and "N ideas for you · title" in muted text. Ideas never pulse or count as needing the player. The Ideas filter chip shows
+  only while there are ideas.
+- `ColumnSplit` (pure): a title column and a step column. The Jobs panel's rows use it, so the step is no longer cut first.
+- `Kit.paperDot(family)`, `Panels.paperDot(...)`, sprites `dot_<family>_paper`: status dots darkened to at least 3:1 on every paper
+  surface (`status_paper` in ui-style.json, checked by `PaperContrastTest`).
+- `UiStyle.disabledText()` (`semantic.disabled_text` #7D7569, 3.5:1 on the disabled fill).
+- `Panels.headerBand(y)`: the header strip's band above its clay rule, for pills and buttons placed in it.
+- `HudLayout.Vanilla` gains `chatRight`, `chatTop` (the visible chat column); `VanillaHud` reads it through the new optional accessor
+  mixin `ChatComponentAccess`.
+- Shared helpers moved from both mods: `client.ui.HasParent`, `client.env.ClientEnv`, `client.env.ScreenPause`, `client.ui.KeyLabels`
+  (README "Class map").
+
+**Looks (visible default changes)**
+- BOTTOM_CENTER keeps clear of vanilla's chat: it lifts above the visible chat lines when it fits there, else moves right of the chat
+  column, else stays (UI-AUDIT 9; `HudLayoutTest`).
+- A disabled primary button is the plain disabled button with `disabledText()`; its pale clay sprite read as hover and its cream label
+  was 1.6:1. `button_primary_disabled.png` now matches `button_disabled.png`. Disabled buttons and chips use `disabledText()`.
+- `Panels.header` / `headerTextY` draw the title 1 px higher, so descenders end above the clay rule.
+- `TextFieldView`: a focused, empty field's placeholder starts 3 px in (`PLACEHOLDER_INSET`), so the caret is not drawn over it.
+- `ScrollList` no longer shifts a selected row's content 2 px right; the Jobs panel's selected row stays put.
+- `UiBits.dotPill` and the Jobs panel's rows use the paper dots.
+- `PickerScreen`: on a short detail pane (under 200 px, GUI scale 4) the big thumbnail is left out (the selected card shows it)
+  (`PickerScreen.detailThumbH`; none under 200 px), so a consumer's extra buttons no longer cover every detail line; "Compare with… (later)" uses
+  `disabledText()`.
+
+
 ## 0.4.1
 
 Additive: every 0.4.0 class and method is unchanged. One visible default changes: `TextFieldView`'s placeholder colour.

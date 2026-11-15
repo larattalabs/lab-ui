@@ -135,7 +135,7 @@ public final class UiBits {
 		}
 		if (primary) {
 			switch (st) {
-				case DISABLED -> Panels.sprite(g, Kit.button(true, "disabled"), x, y, w, 20);
+				case DISABLED -> Panels.sprite(g, Kit.button(false, "disabled"), x, y, w, 20);
 				case PRESSED -> Panels.sprite(g, Kit.button(true, "pressed"), x, y, w, 20, PRIMARY_PRESSED_TINT);
 				case HOVER -> Panels.sprite(g, Kit.button(true, "normal"), x, y, w, 20, PRIMARY_HOVER_TINT);
 				default -> Panels.sprite(g, Kit.button(true, "normal"), x, y, w, 20, PRIMARY_TINT);
@@ -153,7 +153,7 @@ public final class UiBits {
 		int labelColor;
 		int numColor;
 		if (st == ButtonState.DISABLED) {
-			labelColor = primary ? cream() : UiStyle.color("paper.disabled", 0xFFA39B8E);
+			labelColor = UiStyle.disabledText();
 			numColor = labelColor;
 		} else if (primary) {
 			labelColor = panelHi();
@@ -207,7 +207,8 @@ public final class UiBits {
 		int w = p.left() + 7 + 3 + font.width(text) + p.right();
 		if (needsYou) Panels.sprite(g, Kit.PILL, x, y, w, 11);
 		else dev.larattalabs.labui.client.widget.Paint.box(g, x, y, w, 11, UiStyle.chip(), UiStyle.chipEdge());
-		Panels.sprite(g, Kit.dot(family, false), x + p.left() - 1, y + 2, 7, 7);
+		// 0.5.0: the paper dot (3:1 on the pill and chip fills; idle and done were about 2:1)
+		Panels.sprite(g, Kit.paperDot(family), x + p.left() - 1, y + 2, 7, 7);
 		g.text(font, text, x + p.left() + 9, y + p.top(), textArgb, false);
 		return w;
 	}

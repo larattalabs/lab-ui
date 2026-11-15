@@ -37,6 +37,19 @@ class ToastTextTest {
 	}
 
 	@Test
+	void aNeedYouTitleKeepsTheWholeNameAndDropsTheTail() {
+		String title = "Stilt Swamp Fishing Village needs you";
+		String subject = "Stilt Swamp Fishing Village";
+		// 0.5.0: the name (162 px) fits in 170 px on its own, so " needs you" goes instead of the name's end
+		assertEquals("Stilt Swamp Fishing Village", ToastStack.fitTitle(title, subject, 170, M, true));
+		// a name too wide even alone is ellipsized without the tail
+		assertEquals(M.ellipsize(subject, 120), ToastStack.fitTitle(title, subject, 120, M, true));
+		// a title that fits, or dropTail false, is the 0.3.0 rule
+		assertEquals("Hut needs you", ToastStack.fitTitle("Hut needs you", "Hut", 200, M, true));
+		assertEquals("Stilt Swamp Fi… needs you", ToastStack.fitTitle(title, subject, 150, M, false));
+	}
+
+	@Test
 	void aTitleThatFitsIsUnchanged() {
 		assertEquals("Hut needs you", ToastStack.fitTitle("Hut needs you", "Hut", 200, M));
 	}

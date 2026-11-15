@@ -136,6 +136,18 @@ public final class Toasts implements HudElement {
 		}
 		installed = true;
 		HudZones.add(LabUi.id("toasts"), HudZone.TOP_RIGHT_TOASTS, new ZoneElement()).priority(0);
+		// 0.5.0: queued toasts no longer outlive the world they came from (they lapsed only after up to 2 minutes)
+		net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents.DISCONNECT.register((handler, mc) -> mc.execute(Toasts::clear));
+	}
+
+	/**
+	 * Drops every toast, shown and queued (0.5.0; client thread). The stack clears itself on disconnect; call it yourself when a
+	 * mod's own state resets (a world switch it handles, a QA reset).
+	 */
+	public static synchronized void clear() {
+		ACTIVE.clear();
+		lastOrder = List.of();
+		lastLayout = new ToastStack.Layout(List.of(), List.of(), 0, 0, -1);
 	}
 
 	/**
@@ -342,7 +354,7 @@ public final class Toasts implements HudElement {
 		Panels.sprite(g, Kit.icon(t.icon), px + 2, py, 12, 12, tint);
 		int textX = p.left() + 20;
 		int textW = W - textX - p.right();
-		g.text(font, ToastStack.fitTitle(t.title, t.subject, textW, measure(font)), x + textX, py + 2, UiStyle.withAlpha(UiStyle.clayText(), a), false);
+		g.text(font, ToastStack.fitTitle(t.title, t.subject, textW, measure(font), t.need()), x + textX, py + 2, UiStyle.withAlpha(UiStyle.clayText(), a), false);
 	}
 
 	/** {@link ToastStack.Measure} over a font. */
@@ -427,7 +439,7 @@ public final class Toasts implements HudElement {
 		int py = y + p.top() - 1;
 		Panels.sprite(g, Kit.icon(t.icon), px + 2, py + 1, 12, 12, tint);
 		int tx = x + textX;
-		g.text(font, ToastStack.fitTitle(t.title, t.subject, textW, measure(font)), tx, py + 1, UiStyle.withAlpha(need ? UiStyle.clayText()
+		g.text(font, ToastStack.fitTitle(t.title, t.subject, textW, measure(font), t.need()), tx, py + 1, UiStyle.withAlpha(need ? UiStyle.clayText()
 			: t.level == Level.WARN ? UiStyle.error() : UiBits.ink(), a), false);
 		int ly = py + 12;
 		for (FormattedCharSequence line : lines) {

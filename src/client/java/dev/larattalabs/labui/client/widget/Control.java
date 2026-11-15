@@ -21,6 +21,7 @@ public abstract class Control {
 	protected boolean focused;
 	protected boolean disabled;
 	protected @Nullable String tooltip;
+	protected @Nullable String disabledReason;
 	protected Runnable onPress = () -> {
 	};
 
@@ -67,6 +68,7 @@ public abstract class Control {
 
 	public Control disabled(boolean d) {
 		disabled = d;
+		disabledReason = null;
 		return this;
 	}
 
@@ -74,7 +76,36 @@ public abstract class Control {
 		return disabled;
 	}
 
-	/** Tooltip text (for a disabled control: why it is disabled). */
+	/**
+	 * Disabled, with why (0.5.0): "Bundled designs can't be deleted", "Pick a Style first". The reason shows as the control's
+	 * tooltip while it is disabled ({@link Tooltip#offer(Control, int, int)}) and through {@link #reasonAt} for a screen's
+	 * status line; enabling clears it. A null or blank reason is the plain {@link #disabled(boolean)}.
+	 */
+	public Control disabled(boolean d, @Nullable String reason) {
+		disabled = d;
+		disabledReason = d && reason != null && !reason.isBlank() ? reason : null;
+		return this;
+	}
+
+	/** Why the control is disabled, or null (enabled, or disabled without a reason). Since 0.5.0. */
+	public @Nullable String disabledReason() {
+		return disabled ? disabledReason : null;
+	}
+
+	/**
+	 * The reason of the first disabled control under the mouse (0.5.0), for a status or footer line ("Delete: bundled designs
+	 * can't be deleted"), or null. Controls not drawn this frame never match.
+	 */
+	public static @Nullable String reasonAt(double mx, double my, Control... controls) {
+		for (Control c : controls) {
+			if (c != null && c.contains(mx, my) && c.disabledReason() != null) {
+				return c.disabledReason();
+			}
+		}
+		return null;
+	}
+
+	/** Tooltip text; while disabled with a reason ({@link #disabled(boolean, String)}) the reason shows instead. */
 	public Control tooltip(@Nullable String t) {
 		tooltip = t;
 		return this;

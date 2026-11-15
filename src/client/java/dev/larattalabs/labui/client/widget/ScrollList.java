@@ -238,7 +238,8 @@ public final class ScrollList<T> {
 			} else if (hov) {
 				g.fill(innerX, ry, innerX + rowW, ry + rowH, UiStyle.rowHover());
 			}
-			painter.paint(g, font, shown.get(i), innerX + (sel ? 2 : 0), ry, rowW - (sel ? 2 : 0), rowH, sel, hov);
+			// 0.5.0: the content no longer shifts right when selected (the 2 px edge sits in the row's own left pad)
+			painter.paint(g, font, shown.get(i), innerX, ry, rowW, rowH, sel, hov);
 			if (sel && focused) {
 				Paint.border(g, innerX, ry, rowW, rowH, UiStyle.focusRing());
 			}

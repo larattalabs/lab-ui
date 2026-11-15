@@ -64,6 +64,9 @@ public final class TextFieldView {
 		return fit(font, m, w, st).iw();
 	}
 
+	/** How far a focused, empty field's placeholder starts right of the caret (0.5.0). */
+	public static final int PLACEHOLDER_INSET = 3;
+
 	public int draw(GuiGraphicsExtractor g, Font font, TextModel m, int x, int y, int w, boolean focused, Style st) {
 		Kit.Padding p = Kit.padding("text_field");
 		Fit f = fit(font, m, w, st);
@@ -88,7 +91,9 @@ public final class TextFieldView {
 		int ink = UiBits.ink();
 		if (m.isEmpty() && st.placeholder() != null) {
 			// cut to the field (a long placeholder in a narrow field ran past its border at 426x240)
-			g.text(font, dev.larattalabs.labui.client.ui.TextUtil.ellipsize(font, st.placeholder(), Math.max(0, x + w - p.right() - tx)), tx, ty,
+			// 0.5.0: while focused the placeholder starts 3 px in, so the caret sits before it, not over its first letter (Steward S-UI-actions)
+			int px = focused ? tx + PLACEHOLDER_INSET : tx;
+			g.text(font, dev.larattalabs.labui.client.ui.TextUtil.ellipsize(font, st.placeholder(), Math.max(0, x + w - p.right() - px)), px, ty,
 				UiStyle.placeholder(), false);
 		}
 		int caretX = tx;

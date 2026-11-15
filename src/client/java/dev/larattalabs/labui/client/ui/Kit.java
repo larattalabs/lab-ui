@@ -87,6 +87,14 @@ public final class Kit {
 		return id("dot_" + family.toLowerCase(Locale.ROOT) + (halo ? "_halo" : ""));
 	}
 
+	/**
+	 * 7x7 status dot for paper (0.5.0): each family darkened to at least 3:1 on every paper surface (paper, inset, tab shade, the selected,
+	 * hovered and field fills). The plain dots are tuned for the dark HUD: idle and done were about 2:1 on paper. Error is unchanged.
+	 */
+	public static Identifier paperDot(String family) {
+		return id("dot_" + family.toLowerCase(Locale.ROOT) + "_paper");
+	}
+
 	/** Task card background by task status (todo doing review done blocked). */
 	public static Identifier card(String taskStatus) {
 		return id("card_" + taskStatus.toLowerCase(Locale.ROOT));
