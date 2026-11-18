@@ -26,7 +26,7 @@ class HelpKeysTest {
 	void escCloses() {
 		assertTrue(HelpKeys.closes(HelpKeys.ESCAPE, false));
 		assertTrue(HelpKeys.closes(HelpKeys.SLASH, true));
-		assertFalse(HelpKeys.closes(65, false));
+		assertFalse(HelpKeys.closes(4, false)); // A
 	}
 
 	@Test

@@ -6,10 +6,10 @@ import java.util.List;
  * (0.6.0, Architect PR W1) The "?" overlay's pure rules: which key opens it, the rows it lists, the "what's this" line's limit.
  */
 public final class HelpKeys {
-	/** GLFW_KEY_SLASH (Shift+/ is "?" on a US layout) and GLFW_KEY_F1. */
-	public static final int SLASH = 47;
-	public static final int F1 = 290;
-	public static final int ESCAPE = 256;
+	/** 26.3's {@code InputConstants.KEY_SLASH} (Shift+/ is "?" on a US layout), {@code KEY_F1}, {@code KEY_ESCAPE} (SDL scancodes). */
+	public static final int SLASH = 56;
+	public static final int F1 = 58;
+	public static final int ESCAPE = 41;
 	/** A "what's this" line is one line: at most 90 characters. */
 	public static final int MAX_TIP = 90;
 

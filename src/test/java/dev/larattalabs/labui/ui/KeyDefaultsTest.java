@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test;
 class KeyDefaultsTest {
 	@Test
 	void jobsIsK() {
-		assertEquals(75, KeyDefaults.JOBS);
+		assertEquals(14, KeyDefaults.JOBS); // InputConstants.KEY_K on 26.3 (SDL scancodes)
 	}
 
 	@Test
