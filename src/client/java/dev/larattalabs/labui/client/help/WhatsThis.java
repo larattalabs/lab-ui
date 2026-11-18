@@ -72,7 +72,7 @@ public final class WhatsThis {
 	}
 
 	private boolean over(double mx, double my) {
-		return mx >= cx - 3 && mx < cx + 9 && my >= cy && my < cy + H;
+		return mx >= cx - 6 && mx < cx + 12 && my >= cy - 2 && my < cy + H + 2; // a hit area wider than the glyph
 	}
 
 	/** A click on the ×: hides the line. True when it was consumed. */

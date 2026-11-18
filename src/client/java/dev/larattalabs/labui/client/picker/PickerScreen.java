@@ -313,10 +313,15 @@ public class PickerScreen extends Screen {
 			tooltip.offer(c, mx, my);
 		}
 		tooltip.draw(g, f, mx, my);
+		extractAbove(g, mx, my, a);
 		dev.larattalabs.labui.client.help.KeysOverlay keys = keysOverlay();
 		if (keys != null) {
 			keys.draw(g, f, width, height);
 		}
+	}
+
+	/** (0.6.0) A subclass's own drawing over the picker, inside the text-size scaling and under the "?" overlay. */
+	protected void extractAbove(GuiGraphicsExtractor g, int mx, int my, float a) {
 	}
 
 	/** (0.6.0) The mod that owns this screen, for the text size ({@code TextScale}: only opted-in mods scale); null for none. */

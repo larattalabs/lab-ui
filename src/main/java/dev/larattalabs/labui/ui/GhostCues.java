@@ -57,9 +57,16 @@ public final class GhostCues {
 
 	/** An × on the top face of the cell at ({@code x}, {@code y}, {@code z}): two stepped diagonals of small boxes. */
 	public static int cross(Box b, float x, float y, float z) {
+		return cross(b, x, y, z, 0.09f, 0f);
+	}
+
+	/**
+	 * An × of half-width {@code s} per step, lifted {@code lift} over the top face: draw a wider dark one, then the coloured one lifted a
+	 * little over it, for a two-tone mark that reads on any block.
+	 */
+	public static int cross(Box b, float x, float y, float z, float s, float lift) {
 		int steps = 6;
-		float s = 0.07f;
-		float top = y + 1.02f;
+		float top = y + 1.02f + lift;
 		for (int i = 0; i <= steps; i++) {
 			float f = 0.15f + 0.7f * i / steps;
 			b.box(x + f - s, top, z + f - s, x + f + s, top + 0.04f, z + f + s);
@@ -72,9 +79,9 @@ public final class GhostCues {
 	public static int bang(Box b, float x, float y, float z) {
 		float cx = x + 0.5f;
 		float cz = z + 0.5f;
-		float w = 0.07f;
-		b.box(cx - w, y + 1.55f, cz - w, cx + w, y + 2.05f, cz + w);
-		b.box(cx - w, y + 1.30f, cz - w, cx + w, y + 1.44f, cz + w);
+		float w = 0.11f;
+		b.box(cx - w, y + 1.65f, cz - w, cx + w, y + 2.45f, cz + w);
+		b.box(cx - w, y + 1.30f, cz - w, cx + w, y + 1.52f, cz + w);
 		return 2;
 	}
 

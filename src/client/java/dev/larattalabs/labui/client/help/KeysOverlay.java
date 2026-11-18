@@ -71,13 +71,16 @@ public final class KeysOverlay {
 		return false;
 	}
 
-	/** Draws the overlay over a screen {@code sw} x {@code sh} (last, after everything else). */
+	/**
+	 * Draws the overlay over a screen {@code sw} x {@code sh} (last, after everything else). The panel is sized from its content: the
+	 * keys, then as many terms as fit whole (word in ink, meaning muted and indented), a "+N more" line, and its own footer row.
+	 */
 	public void draw(GuiGraphicsExtractor g, Font font, int sw, int sh) {
 		if (!open) {
 			return;
 		}
 		g.nextStratum();
-		g.fill(0, 0, sw, sh, UiStyle.withAlpha(UiStyle.INK, 120));
+		g.fill(0, 0, sw, sh, UiStyle.withAlpha(UiStyle.INK, 140));
 		List<HelpKeys.Row> rs = rows();
 		int pw = Math.min(sw - 24, 420);
 		int pad = 10;
@@ -87,38 +90,81 @@ public final class KeysOverlay {
 			keyCol = Math.max(keyCol, UiBits.keycapWidth(font, r.key()));
 		}
 		keyCol = Math.min(keyCol, inner / 3);
+		int verbW = inner - keyCol - 8;
+		int keysH = 0;
+		for (HelpKeys.Row r : rs) {
+			keysH += Math.max(14, 10 * TextUtil.wrapPlain(font, r.verb(), verbW).size() + 4);
+		}
 		List<Glossary.Term> found = new java.util.ArrayList<>();
 		for (String t : terms) {
 			found.addAll(Glossary.lookup(t));
 		}
-		int termsH = found.isEmpty() ? 0 : 16 + GlossaryView.drawSome(null, font, terms, 0, 0, inner);
-		int rowsH = 0;
-		for (HelpKeys.Row r : rs) {
-			rowsH += Math.max(14, 10 * TextUtil.wrapPlain(font, r.verb(), inner - keyCol - 8).size() + 4);
+		int head = 22;
+		int footer = 18;
+		int maxH = sh - 16;
+		// as many whole terms as fit under the keys
+		int room = maxH - pad - head - keysH - footer - pad;
+		int termsH = 0;
+		int shownTerms = 0;
+		if (!found.isEmpty() && room > 24) {
+			termsH = 14;
+			for (Glossary.Term t : found) {
+				int h = termHeight(font, t, inner);
+				if (termsH + h + (shownTerms + 1 < found.size() ? 10 : 0) > room) {
+					break;
+				}
+				termsH += h;
+				shownTerms++;
+			}
+			if (shownTerms < found.size()) {
+				termsH += 10;
+			}
+			if (shownTerms == 0) {
+				termsH = 0;
+			}
 		}
-		int ph = Math.min(sh - 24, 22 + rowsH + termsH + 18);
+		int ph = Math.min(maxH, pad + head + keysH + (termsH > 0 ? 6 + termsH : 0) + footer + pad - 4);
 		int px = (sw - pw) / 2;
 		int py = (sh - ph) / 2;
 		Panels.panel(g, px, py, pw, ph);
 		Panels.header(g, font, "Keys · " + title, px + pad - 2, py + pad - 2, inner + 4);
-		g.enableScissor(px, py, px + pw, py + ph - 14);
-		int y = py + pad + 18;
+		int y = py + pad + head;
 		for (HelpKeys.Row r : rs) {
 			UiBits.keycap(g, font, r.key(), px + pad, y);
 			int ly = y + 2;
-			for (String line : TextUtil.wrapPlain(font, r.verb(), inner - keyCol - 8)) {
+			for (String line : TextUtil.wrapPlain(font, r.verb(), verbW)) {
 				g.text(font, line, px + pad + keyCol + 8, ly, UiBits.ink(), false);
 				ly += 10;
 			}
 			y += Math.max(14, ly - y + 2);
 		}
-		if (!found.isEmpty()) {
-			y += 4;
+		if (termsH > 0) {
+			y += 6;
 			g.text(font, "Terms", px + pad, y, UiStyle.clayText(), false);
-			y += 12;
-			GlossaryView.drawSome(g, font, terms, px + pad, y, inner);
+			y += 14;
+			for (int i = 0; i < shownTerms; i++) {
+				y += drawTerm(g, font, found.get(i), px + pad, y, inner);
+			}
+			if (shownTerms < found.size()) {
+				g.text(font, "+" + (found.size() - shownTerms) + " more in Status > Help", px + pad, y, UiStyle.mutedText(), false);
+			}
 		}
-		g.disableScissor();
-		g.text(font, "Esc or ? closes · Status > Help lists every term", px + pad, py + ph - 12, UiStyle.mutedText(), false);
+		int fy = py + ph - pad - 9;
+		g.fill(px + pad, fy - 4, px + pw - pad, fy - 3, UiStyle.rule());
+		g.text(font, TextUtil.ellipsize(font, "Esc or ? closes · Status > Help lists every term", inner), px + pad, fy, UiStyle.mutedText(), false);
+	}
+
+	private static int termHeight(Font font, Glossary.Term t, int w) {
+		return 10 + 10 * TextUtil.wrapPlain(font, t.meaning(), w - 8).size() + 2;
+	}
+
+	private static int drawTerm(GuiGraphicsExtractor g, Font font, Glossary.Term t, int x, int y, int w) {
+		g.text(font, TextUtil.ellipsize(font, t.word(), w), x, y, UiBits.ink(), false);
+		int ly = y + 10;
+		for (String line : TextUtil.wrapPlain(font, t.meaning(), w - 8)) {
+			g.text(font, line, x + 8, ly, UiBits.muted(), false);
+			ly += 10;
+		}
+		return ly - y + 2;
 	}
 }
