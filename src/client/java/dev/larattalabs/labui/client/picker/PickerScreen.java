@@ -473,7 +473,8 @@ public class PickerScreen extends Screen {
 		// fewer, wider columns when the sections are short; cells and cards grow to fill the row (up to a cap)
 		cols = SectionGrid.columns(inner, GAP, cards() ? CARD_MIN_W : CELL_MIN_W, largest);
 		cellW = SectionGrid.cellWidth(inner, GAP, cols, cards() ? CARD_MAX_W : CELL_MAX_W);
-		cellH = cards() ? sheetH() + 37 : thumbH() + 27;
+		int grow = dev.larattalabs.labui.client.ui.Panels.textGrow(); // (0.6.0) the name and tag rows grow with the text size
+		cellH = cards() ? sheetH() + 37 + 2 * grow : thumbH() + 27 + grow;
 		grid = model.grid(cols, true);
 		rowY = new int[grid.rows()];
 		int yy = 0;
@@ -644,7 +645,7 @@ public class PickerScreen extends Screen {
 		drawThumb(g, f, e, x + 1, y + 1, w - 2, sheetH, 24);
 		g.fill(x + 1, y + 1 + sheetH, x + w - 1, y + 2 + sheetH, UiStyle.rowHoverEdge());
 		drawName(g, f, e, x + 4, y + sheetH + 4, w - 8);
-		drawTags(g, f, e.tags(), x + 4, y + h - 13, w - 8);
+		drawTags(g, f, e.tags(), x + 4, y + h - 13 - dev.larattalabs.labui.client.ui.Panels.textGrow(), w - 8);
 	}
 
 	/** Small tag boxes in one row, the rest folded into "+N". */
@@ -663,7 +664,7 @@ public class PickerScreen extends Screen {
 	}
 
 	private static void tag(GuiGraphicsExtractor g, Font f, String s, int x, int y, int w) {
-		g.fill(x, y, x + w, y + 10, 0xFFE3D5BF);
+		g.fill(x, y, x + w, y + 10 + dev.larattalabs.labui.client.ui.Panels.textGrow(), 0xFFE3D5BF);
 		g.text(f, s, x + 3, y + 1, 0xFF5A4636, false);
 	}
 
