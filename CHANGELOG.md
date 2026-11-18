@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased (0.6.0, L-0.6: Architect's player-ready pass)
+## 0.6.0 (2026-11-18, L-0.6: Architect's player-ready pass)
 
 Additive: every 0.5.x class and method keeps working. Visible default changes: none (the ghost palette stays `standard`, the
 text size 100 %, and only mods that opt in are scaled). Notify AgentCraft Worlds, Architect and Steward.
