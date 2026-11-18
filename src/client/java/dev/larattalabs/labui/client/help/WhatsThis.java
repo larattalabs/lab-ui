@@ -52,7 +52,7 @@ public final class WhatsThis {
 
 	/** The height the line takes: {@link #H}, or 0 once hidden. */
 	public int height() {
-		return shown() ? H : 0;
+		return shown() ? TextUtil.lh(H) : 0;
 	}
 
 	/** Draws the line at ({@code x}, {@code y}) in a row {@code w} wide; returns the height used (0 once hidden). */
@@ -66,13 +66,14 @@ public final class WhatsThis {
 		cx = x + w - xw - 2;
 		cy = y;
 		boolean hov = over(mx, my);
+		int h = TextUtil.lh(H);
 		g.text(font, TextUtil.ellipsize(font, text, w - xw - 10), x, y + 2, UiStyle.mutedText(), false);
 		g.text(font, x0, cx, y + 2, hov ? UiStyle.link() : UiStyle.mutedText(), false);
-		return H;
+		return h;
 	}
 
 	private boolean over(double mx, double my) {
-		return mx >= cx - 6 && mx < cx + 12 && my >= cy - 2 && my < cy + H + 2; // a hit area wider than the glyph
+		return mx >= cx - 6 && mx < cx + 12 && my >= cy - 2 && my < cy + TextUtil.lh(H) + 2; // a hit area wider than the glyph
 	}
 
 	/** A click on the ×: hides the line. True when it was consumed. */

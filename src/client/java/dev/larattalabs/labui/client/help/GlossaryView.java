@@ -26,17 +26,17 @@ public final class GlossaryView {
 			if (g != null) {
 				g.text(font, s.title(), x, y, UiStyle.clayText(), false);
 			}
-			y += 12;
+			y += dev.larattalabs.labui.client.ui.TextUtil.lh(12);
 			for (Glossary.Term t : s.terms()) {
 				if (g != null) {
 					g.text(font, TextUtil.ellipsize(font, t.word(), w), x, y, UiBits.ink(), false);
 				}
-				y += LINE;
+				y += TextUtil.lh(LINE);
 				for (String line : TextUtil.wrapPlain(font, t.meaning(), w - 8)) {
 					if (g != null) {
 						g.text(font, line, x + 8, y, UiBits.muted(), false);
 					}
-					y += LINE;
+					y += TextUtil.lh(LINE);
 				}
 				y += 2;
 			}
@@ -54,7 +54,7 @@ public final class GlossaryView {
 					if (g != null) {
 						g.text(font, line, x, y, UiBits.muted(), false);
 					}
-					y += LINE;
+					y += TextUtil.lh(LINE);
 				}
 			}
 		}

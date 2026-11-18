@@ -93,31 +93,31 @@ public final class KeysOverlay {
 		int verbW = inner - keyCol - 8;
 		int keysH = 0;
 		for (HelpKeys.Row r : rs) {
-			keysH += Math.max(14, 10 * TextUtil.wrapPlain(font, r.verb(), verbW).size() + 4);
+			keysH += Math.max(TextUtil.lh(14), TextUtil.lh(10) * TextUtil.wrapPlain(font, r.verb(), verbW).size() + 4);
 		}
 		List<Glossary.Term> found = new java.util.ArrayList<>();
 		for (String t : terms) {
 			found.addAll(Glossary.lookup(t));
 		}
-		int head = 22;
-		int footer = 18;
+		int head = TextUtil.lh(14) + 8;
+		int footer = TextUtil.lh(10) + 8;
 		int maxH = sh - 16;
 		// as many whole terms as fit under the keys
 		int room = maxH - pad - head - keysH - footer - pad;
 		int termsH = 0;
 		int shownTerms = 0;
 		if (!found.isEmpty() && room > 24) {
-			termsH = 14;
+			termsH = TextUtil.lh(14);
 			for (Glossary.Term t : found) {
 				int h = termHeight(font, t, inner);
-				if (termsH + h + (shownTerms + 1 < found.size() ? 10 : 0) > room) {
+				if (termsH + h + (shownTerms + 1 < found.size() ? TextUtil.lh(10) : 0) > room) {
 					break;
 				}
 				termsH += h;
 				shownTerms++;
 			}
 			if (shownTerms < found.size()) {
-				termsH += 10;
+				termsH += dev.larattalabs.labui.client.ui.TextUtil.lh(10);
 			}
 			if (shownTerms == 0) {
 				termsH = 0;
@@ -134,14 +134,14 @@ public final class KeysOverlay {
 			int ly = y + 2;
 			for (String line : TextUtil.wrapPlain(font, r.verb(), verbW)) {
 				g.text(font, line, px + pad + keyCol + 8, ly, UiBits.ink(), false);
-				ly += 10;
+				ly += dev.larattalabs.labui.client.ui.TextUtil.lh(10);
 			}
-			y += Math.max(14, ly - y + 2);
+			y += Math.max(TextUtil.lh(14), ly - y + 2);
 		}
 		if (termsH > 0) {
 			y += 6;
 			g.text(font, "Terms", px + pad, y, UiStyle.clayText(), false);
-			y += 14;
+			y += dev.larattalabs.labui.client.ui.TextUtil.lh(14);
 			for (int i = 0; i < shownTerms; i++) {
 				y += drawTerm(g, font, found.get(i), px + pad, y, inner);
 			}
@@ -149,21 +149,21 @@ public final class KeysOverlay {
 				g.text(font, "+" + (found.size() - shownTerms) + " more in Status > Help", px + pad, y, UiStyle.mutedText(), false);
 			}
 		}
-		int fy = py + ph - pad - 9;
+		int fy = py + ph - pad - TextUtil.lh(9);
 		g.fill(px + pad, fy - 4, px + pw - pad, fy - 3, UiStyle.rule());
 		g.text(font, TextUtil.ellipsize(font, "Esc or ? closes · Status > Help lists every term", inner), px + pad, fy, UiStyle.mutedText(), false);
 	}
 
 	private static int termHeight(Font font, Glossary.Term t, int w) {
-		return 10 + 10 * TextUtil.wrapPlain(font, t.meaning(), w - 8).size() + 2;
+		return TextUtil.lh(10) * (1 + TextUtil.wrapPlain(font, t.meaning(), w - 8).size()) + 2;
 	}
 
 	private static int drawTerm(GuiGraphicsExtractor g, Font font, Glossary.Term t, int x, int y, int w) {
 		g.text(font, TextUtil.ellipsize(font, t.word(), w), x, y, UiBits.ink(), false);
-		int ly = y + 10;
+		int ly = y + TextUtil.lh(10);
 		for (String line : TextUtil.wrapPlain(font, t.meaning(), w - 8)) {
 			g.text(font, line, x + 8, ly, UiBits.muted(), false);
-			ly += 10;
+			ly += dev.larattalabs.labui.client.ui.TextUtil.lh(10);
 		}
 		return ly - y + 2;
 	}

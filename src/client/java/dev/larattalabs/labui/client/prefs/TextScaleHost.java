@@ -6,16 +6,13 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.input.MouseButtonEvent;
 
 /**
- * (0.6.0, Architect PR A3) Hosts the text size in a screen: the screen is drawn at its GUI size divided by the scale and scaled back
- * up, so its own layout reflows to the smaller size and its text and line boxes grow; mouse input is mapped the same way. Use it in
- * an opted-in mod's screen ({@link TextScale#optIn}):
+ * (0.6.0, Architect PR A3) Hosts the text size in a screen: while an opted-in mod's screen draws, its text runs are drawn and measured at
+ * the scale ({@code TextScale.activeFactor}), so its layout (built on {@code font.width}, {@code TextUtil} and {@code TextUtil.lh})
+ * reflows to the bigger text. Mouse coordinates are unchanged (the layout is in GUI pixels).
  *
  * <pre>
  * public void extractRenderState(g, mx, my, a) { TextScaleHost.render(this, OWNER, g, mx, my, (gg, x, y) -&gt; draw(gg, x, y, a)); }
- * public boolean mouseClicked(MouseButtonEvent e, boolean dbl) { e = TextScaleHost.map(this, OWNER, e); ... }
  * </pre>
- *
- * The screen's {@code width} and {@code height} hold the smaller size while it draws and are restored after.
  */
 public final class TextScaleHost {
 	@FunctionalInterface
@@ -23,56 +20,42 @@ public final class TextScaleHost {
 		void draw(GuiGraphicsExtractor g, int mx, int my);
 	}
 
-	/** The screen's real GUI size while it is drawn scaled (so {@link #result} reads the real one). */
-	private static int realW;
-	private static int realH;
-	private static Screen drawing;
-
 	private TextScaleHost() {
 	}
 
-	/** The scale that applies to {@code s} now (the preference, the opt-in and the clamp). */
+	/** The scale that applies to {@code s} now (the preference and the opt-in). */
 	public static TextScale.Result result(Screen s, String owner) {
-		int w = drawing == s ? realW : s.width;
-		int h = drawing == s ? realH : s.height;
-		return TextScale.resolve(owner, w, h);
+		return TextScale.resolve(owner, s.width, s.height);
 	}
 
 	public static void render(Screen s, String owner, GuiGraphicsExtractor g, int mx, int my, Body body) {
 		TextScale.Result r = result(s, owner);
-		if (r.percent() == 100 || drawing == s) {
-			body.draw(g, mx, my);
-			return;
-		}
-		float f = r.factor();
-		int w = s.width;
-		int h = s.height;
-		realW = w;
-		realH = h;
-		drawing = s;
-		s.width = (int) Math.floor(w / f);
-		s.height = (int) Math.floor(h / f);
-		g.pose().pushMatrix();
-		g.pose().scale(f, f);
+		float was = TextScale.activate(r.factor());
 		try {
-			body.draw(g, (int) Math.floor(mx / f), (int) Math.floor(my / f));
+			body.draw(g, mx, my);
 		} finally {
-			g.pose().popMatrix();
-			s.width = w;
-			s.height = h;
-			drawing = null;
+			TextScale.activate(was);
 		}
 	}
 
-	/** A mouse event in the screen's scaled coordinates. */
-	public static MouseButtonEvent map(Screen s, String owner, MouseButtonEvent e) {
-		float f = result(s, owner).factor();
-		return f == 1f ? e : new MouseButtonEvent(e.x() / f, e.y() / f, e.buttonInfo());
+	/** Runs {@code r} with the screen's text scale active (for key or mouse handlers that measure text). */
+	public static void with(Screen s, String owner, Runnable r) {
+		float was = TextScale.activate(result(s, owner).factor());
+		try {
+			r.run();
+		} finally {
+			TextScale.activate(was);
+		}
 	}
 
-	/** A mouse coordinate in the screen's scaled coordinates. */
+	/** Mouse events are in GUI pixels (kept for callers of 0.6.0 previews; returns {@code e}). */
+	public static MouseButtonEvent map(Screen s, String owner, MouseButtonEvent e) {
+		return e;
+	}
+
+	/** Kept for callers; returns {@code v}. */
 	public static double map(Screen s, String owner, double v) {
-		return v / result(s, owner).factor();
+		return v;
 	}
 
 	/** (PR A3) The stored text size (default 100). */

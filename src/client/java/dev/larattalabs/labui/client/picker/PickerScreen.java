@@ -696,10 +696,10 @@ public class PickerScreen extends Screen {
 			cy += bigH + 5;
 		}
 		g.text(f, TextUtil.ellipsize(f, e.label(), cw), cx, cy, UiStyle.link(), false);
-		cy += 10;
+		cy += dev.larattalabs.labui.client.ui.TextUtil.lh(10);
 		if (e.subtitle() != null) {
 			g.text(f, TextUtil.ellipsize(f, e.subtitle(), cw), cx, cy, UiStyle.mutedText(), false);
-			cy += 10;
+			cy += dev.larattalabs.labui.client.ui.TextUtil.lh(10);
 		}
 		int buttonsH = Button.H + 6;
 		boolean stack = Button.width(f, spec.pickLabel()) + fav.width(f) + 4 > cw;
@@ -726,13 +726,14 @@ public class PickerScreen extends Screen {
 		for (String line : lines) {
 			wrapped.addAll(TextUtil.wrapPlain(f, line, cw));
 		}
-		for (int i = 0; i < wrapped.size() && cy + 9 <= bottom; i++) {
-			boolean lastFits = cy + 10 + 9 > bottom;
+		int l9 = TextUtil.lh(9);
+		for (int i = 0; i < wrapped.size() && cy + l9 <= bottom; i++) {
+			boolean lastFits = cy + TextUtil.lh(10) + l9 > bottom;
 			String l = lastFits && i + 1 < wrapped.size() ? TextUtil.ellipsize(f, wrapped.get(i) + " …", cw) : wrapped.get(i);
 			g.text(f, l, cx, cy, UiStyle.INK, false);
-			cy += 10;
+			cy += dev.larattalabs.labui.client.ui.TextUtil.lh(10);
 		}
-		if (cards() && cy + 9 <= bottom) {
+		if (cards() && cy + TextUtil.lh(9) <= bottom) {
 			g.text(f, TextUtil.ellipsize(f, "Compare with… (later)", cw), cx, cy + 2, UiStyle.disabledText(), false);
 		}
 		boolean isFav = model.isFavourite(e.id());
@@ -898,7 +899,6 @@ public class PickerScreen extends Screen {
 
 	@Override
 	public boolean mouseClicked(MouseButtonEvent e, boolean doubleClick) {
-		e = dev.larattalabs.labui.client.prefs.TextScaleHost.map(this, textScaleOwner(), e); // (PR A3)
 		double mx = e.x();
 		double my = e.y();
 		int b = e.button();
@@ -968,9 +968,6 @@ public class PickerScreen extends Screen {
 
 	@Override
 	public boolean mouseDragged(MouseButtonEvent e, double dx, double dy) {
-		e = dev.larattalabs.labui.client.prefs.TextScaleHost.map(this, textScaleOwner(), e); // (PR A3)
-		dx = dev.larattalabs.labui.client.prefs.TextScaleHost.map(this, textScaleOwner(), dx);
-		dy = dev.larattalabs.labui.client.prefs.TextScaleHost.map(this, textScaleOwner(), dy);
 		if (dragGrab >= 0) {
 			int viewH = gh - 8;
 			gridScroll = ScrollMath.offsetForThumbTop(viewH, contentH, viewH, (int) e.y() - (gy + 4) - dragGrab);
@@ -981,7 +978,6 @@ public class PickerScreen extends Screen {
 
 	@Override
 	public boolean mouseReleased(MouseButtonEvent e) {
-		e = dev.larattalabs.labui.client.prefs.TextScaleHost.map(this, textScaleOwner(), e); // (PR A3)
 		if (dragGrab >= 0) {
 			dragGrab = -1;
 			return true;
@@ -991,8 +987,6 @@ public class PickerScreen extends Screen {
 
 	@Override
 	public boolean mouseScrolled(double mx, double my, double scrollX, double scrollY) {
-		mx = dev.larattalabs.labui.client.prefs.TextScaleHost.map(this, textScaleOwner(), mx); // (PR A3)
-		my = dev.larattalabs.labui.client.prefs.TextScaleHost.map(this, textScaleOwner(), my);
 		if (mx >= gx && mx < gx + gw && my >= gy && my < gy + gh) {
 			gridScroll = Math.max(0, Math.min(gridScroll - (int) Math.signum(scrollY) * (cellH + GAP) / 2 * 2, ScrollMath.maxOffset(contentH, gh - 8)));
 			return true;

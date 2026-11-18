@@ -25,15 +25,25 @@ class TextScaleTest {
 	}
 
 	@Test
-	void theClampTable() {
+	void itAppliesAtEveryGuiScale() {
 		TextScale.optIn("architect_mc");
-		// a 1920 x 1018 window: GUI 2 = 960 x 509, GUI 3 = 640 x 339, GUI 4 = 480 x 254
-		assertEquals(new TextScale.Result(150, false), TextScale.resolve("architect_mc", 150, 960, 509));
-		assertEquals(new TextScale.Result(125, true), TextScale.resolve("architect_mc", 150, 640, 339), "426 x 226 is under 240 high: 125 %");
-		assertEquals(new TextScale.Result(100, true), TextScale.resolve("architect_mc", 150, 480, 254), "GUI 4 has no room: back to 100 %, said");
-		assertEquals(new TextScale.Result(100, true), TextScale.resolve("architect_mc", 125, 480, 254));
-		assertEquals(new TextScale.Result(100, false), TextScale.resolve("architect_mc", 100, 480, 254));
-		assertEquals(new TextScale.Result(125, false), TextScale.resolve("architect_mc", 125, 640, 339));
+		for (int[] g : new int[][] {{960, 509}, {640, 339}, {480, 254}}) {
+			assertEquals(new TextScale.Result(150, false), TextScale.resolve("architect_mc", 150, g[0], g[1]), g[0] + "x" + g[1]);
+		}
+	}
+
+	@Test
+	void lineBoxesAndWidthsFollowTheActiveFactor() {
+		assertEquals(10, TextScale.lh(10));
+		float was = TextScale.activate(1.5f);
+		try {
+			assertEquals(15, TextScale.lh(10));
+			assertEquals(18, TextScale.lh(12));
+			assertEquals(100, TextScale.unscaled(150), "a 150 px column holds 100 px of unscaled text");
+		} finally {
+			TextScale.activate(was);
+		}
+		assertEquals(1f, TextScale.activeFactor());
 	}
 
 	@Test
