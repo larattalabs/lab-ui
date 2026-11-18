@@ -24,7 +24,7 @@ Lab UI is the shared client UI library of the Laratta Labs Minecraft mods (Agent
 
 ### Use it in your mod
 
-The jar is published to GitHub Packages at `https://maven.pkg.github.com/larattalabs/lab-ui`, as `dev.larattalabs:lab_ui:<version>` (latest: `0.5.0`, the L-0.5 batch: stepper, disabled reasons, ideas and the idle pill, chat-safe HUD, shared helpers; `0.4.1` paper-contrast text tokens and placeholder colour from the 2026-11-12 UI audit; `0.4.0` added the [Jobs & spend panel](#jobs--spend-panel-040), `0.3.0` added [on-dark colour tokens and shared HUD zones](#hud-zones-and-on-dark-tokens-030), `0.2.0` the [components](#components-020)).
+The jar is published to GitHub Packages at `https://maven.pkg.github.com/larattalabs/lab-ui`, as `dev.larattalabs:lab_ui:<version>` (latest: `0.6.0`, the L-0.6 batch: text scale, ghost palette and cues, help overlays, glossary and key defaults; `0.5.0` the L-0.5 batch: stepper, disabled reasons, ideas and the idle pill, chat-safe HUD, shared helpers; `0.4.1` paper-contrast text tokens and placeholder colour from the 2026-11-12 UI audit; `0.4.0` added the [Jobs & spend panel](#jobs--spend-panel-040), `0.3.0` added [on-dark colour tokens and shared HUD zones](#hud-zones-and-on-dark-tokens-030), `0.2.0` the [components](#components-020)).
 
 **1. Get a token.** GitHub Packages' Maven registry needs one **even for public packages**: a token with the `read:packages` scope (a classic personal access token, or your GitHub CLI login). With the GitHub CLI:
 
@@ -434,6 +434,20 @@ These are AgentCraft-shaped and have no small seam that would make them generic 
 | `HudLayout`, toasts, `HudSounds` | Foreman listeners. |
 | `StatusMap`, `DisplayText` | Foreman task and decision types. |
 | AgentCraft's `UiRules` | Agent targeting, lecterns and `Anchors` are mixed in with the generic rules. The generic Enter / two-press / `KeyRepeat` rules shipped in 0.2.0 as `dev.larattalabs.labui.ui.UiRules` (Architect's and Steward's copy). |
+
+## Help, accessibility and text size (0.6.0)
+
+From Architect's player-ready pass; each is usable from any mod's screens (CHANGELOG "Unreleased (0.6.0)").
+
+| Class | What it is |
+|---|---|
+| `client.help.WhatsThis` | A screen's one-line "what's this" with a × that hides it, persisted by key in a `Store` (the mod's own, or `LabUiPrefs.tips()`). |
+| `client.help.KeysOverlay`, `ui.HelpKeys` | The "?" overlay: Shift+/ or F1 (F1 only while a text field has the focus), the screen's keys read live, the terms it uses. |
+| `ui.Glossary`, `client.help.GlossaryView`, `ui.WordingLint` | One glossary section per mod (Steward's slot reserved), its page, and the "design, never blueprint" check for a mod's tests. |
+| `ui.GhostPalette`, `ui.GhostCues`, `ui.Cvd` | Ghost colours by category in the standard and Okabe-Ito palettes, the second (non-colour) cue's shapes, CVD simulation and ΔE. |
+| `ui.TextScale`, `client.prefs.TextScaleHost`, `TextUtil.lh`, `Panels.textGrow` | The text size: per-mod opt-in; while an opted-in screen draws, text runs are drawn and measured at the scale (mixins on `GuiGraphicsExtractor.text` and `Font`), and line boxes use `lh`. |
+| `client.prefs.LabUiPrefs` | `config/lab_ui.json`: `tips.hidden[]`, `ghostPalette`, `textScale`; `applyStored()` at a consumer's init. |
+| `ui.KeyDefaults` | lab-ui's default key codes (26.3's `InputConstants`: SDL scancodes) and Steward's reserved Y/I/U. |
 
 ## Versioning
 

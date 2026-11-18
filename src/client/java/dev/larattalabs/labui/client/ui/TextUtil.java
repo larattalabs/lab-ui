@@ -41,10 +41,17 @@ public final class TextUtil {
 				out.add("");
 				continue;
 			}
-			font.getSplitter().splitLines(para, Math.max(1, width), net.minecraft.network.chat.Style.EMPTY)
+			// (0.6.0) the splitter measures unscaled glyphs: under a text scale a line holds width / factor of them
+			int w = dev.larattalabs.labui.ui.TextScale.drawing() ? width : dev.larattalabs.labui.ui.TextScale.unscaled(width);
+			font.getSplitter().splitLines(para, Math.max(1, w), net.minecraft.network.chat.Style.EMPTY)
 				.forEach(ft -> out.add(ft.getString()));
 		}
 		return out;
+	}
+
+	/** (0.6.0) A line advance of {@code px} at the active text scale ({@code TextScale.lh}). */
+	public static int lh(int px) {
+		return dev.larattalabs.labui.ui.TextScale.lh(px);
 	}
 
 	/** First line of {@code s}, trimmed. */

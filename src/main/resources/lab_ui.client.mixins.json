@@ -6,6 +6,8 @@
 	"client": [
 		"BossHealthOverlayAccess",
 		"ChatComponentAccess",
+		"FontScaleMixin",
+		"GuiTextScaleMixin",
 		"ToastInstanceAccess",
 		"ToastManagerAccess"
 	],

@@ -46,7 +46,7 @@ public final class Panels {
 
 	/** Title strip with clay underline (14 px tall), with the title in ink. */
 	public static void header(GuiGraphicsExtractor g, Font font, String title, int x, int y, int w) {
-		sprite(g, Kit.HEADER, x, y, w, 14);
+		sprite(g, Kit.HEADER, x, y, w, headerH());
 		Kit.Padding p = Kit.padding("header");
 		text(g, font, TextUtil.ellipsize(font, title, w - p.left() - p.right()), x + p.left(), headerTextY(y), UiStyle.color("paper.text"));
 	}
@@ -69,7 +69,17 @@ public final class Panels {
 	 * "Jobs (K)" box) so they never sit on the rule, as Architect's title bar did.
 	 */
 	public static int[] headerBand(int y) {
-		return new int[] {y, HEADER_H - HEADER_RULE};
+		return new int[] {y, headerH() - HEADER_RULE};
+	}
+
+	/** (0.6.0) The extra height a text run takes at the active text size ({@code TextScale}: 4 px at 150 %), 0 at 100 %. */
+	public static int textGrow() {
+		return dev.larattalabs.labui.ui.TextScale.lh(8) - 8;
+	}
+
+	/** (0.6.0) The header strip's height at the active text size ({@link #HEADER_H} at 100 %). */
+	public static int headerH() {
+		return HEADER_H + textGrow();
 	}
 
 	/**
@@ -78,7 +88,7 @@ public final class Panels {
 	 * {@code meta} may be null or empty. Since the release after 0.4.0 (ui/polish-1).
 	 */
 	public static void header(GuiGraphicsExtractor g, Font font, String title, String meta, int metaArgb, int x, int y, int w) {
-		sprite(g, Kit.HEADER, x, y, w, 14);
+		sprite(g, Kit.HEADER, x, y, w, headerH());
 		Kit.Padding p = Kit.padding("header");
 		int ty = headerTextY(y);
 		int mw = meta == null || meta.isEmpty() ? 0 : font.width(meta);

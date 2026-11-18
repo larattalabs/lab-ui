@@ -60,7 +60,7 @@ public final class JobBoard {
 		} catch (IllegalArgumentException alreadyThere) {
 			cat = new KeyMapping.Category(LabUi.id("lab_ui"));
 		}
-		key = KeyMappingHelper.registerKeyMapping(new KeyMapping("key.lab_ui.jobs", InputConstants.Type.KEYBOARD, InputConstants.KEY_K, cat));
+		key = KeyMappingHelper.registerKeyMapping(new KeyMapping("key.lab_ui.jobs", InputConstants.Type.KEYBOARD, dev.larattalabs.labui.ui.KeyDefaults.JOBS, cat));
 		ClientTickEvents.END_CLIENT_TICK.register(mc -> Guard.run("lab_ui:jobs.key", () -> tick(mc)));
 		Toasts.install();
 		HudZones.add(LabUi.id("jobs_pill"), HudZone.TOP_LEFT, new NeedsYouPill()).priority(70);

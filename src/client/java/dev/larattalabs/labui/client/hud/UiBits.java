@@ -76,7 +76,7 @@ public final class UiBits {
 	public static int keycap(GuiGraphicsExtractor g, Font font, String key, int x, int y) {
 		Kit.Padding p = Kit.padding("keycap");
 		int w = Math.max(12, font.width(key) + p.left() + p.right());
-		Panels.sprite(g, Kit.KEYCAP, x, y, w, 12);
+		Panels.sprite(g, Kit.KEYCAP, x, y, w, 12 + Panels.textGrow()); // (0.6.0) grows with the text size
 		g.text(font, key, x + (w - font.width(key)) / 2, y + p.top(), UiStyle.color("palette.ui.text", 0xFF34312E), false);
 		return w;
 	}
@@ -205,8 +205,9 @@ public final class UiBits {
 	public static int dotPill(GuiGraphicsExtractor g, Font font, String family, String text, int x, int y, int textArgb, boolean needsYou) {
 		Kit.Padding p = Kit.padding("pill");
 		int w = p.left() + 7 + 3 + font.width(text) + p.right();
-		if (needsYou) Panels.sprite(g, Kit.PILL, x, y, w, 11);
-		else dev.larattalabs.labui.client.widget.Paint.box(g, x, y, w, 11, UiStyle.chip(), UiStyle.chipEdge());
+		int ph = 11 + Panels.textGrow(); // (0.6.0) grows with the text size
+		if (needsYou) Panels.sprite(g, Kit.PILL, x, y, w, ph);
+		else dev.larattalabs.labui.client.widget.Paint.box(g, x, y, w, ph, UiStyle.chip(), UiStyle.chipEdge());
 		// 0.5.0: the paper dot (3:1 on the pill and chip fills; idle and done were about 2:1)
 		Panels.sprite(g, Kit.paperDot(family), x + p.left() - 1, y + 2, 7, 7);
 		g.text(font, text, x + p.left() + 9, y + p.top(), textArgb, false);

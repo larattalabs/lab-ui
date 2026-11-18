@@ -259,6 +259,11 @@ public class PickerScreen extends Screen {
 
 	@Override
 	public void extractRenderState(GuiGraphicsExtractor g, int mx, int my, float a) {
+		// (PR A3) the text size: drawn at the GUI size over the scale, so the layout reflows (opted-in mods only)
+		dev.larattalabs.labui.client.prefs.TextScaleHost.render(this, textScaleOwner(), g, mx, my, (gg, x, y) -> extractScaled(gg, x, y, a));
+	}
+
+	private void extractScaled(GuiGraphicsExtractor g, int mx, int my, float a) {
 		super.extractRenderState(g, mx, my, a);
 		Font f = font;
 		int px = 6;
@@ -275,6 +280,11 @@ public class PickerScreen extends Screen {
 		int y = py + 2;
 		drawTitle(g, f, ix, y, iw, mx, my);
 		y += TITLE_H;
+		// (0.6.0) the subclass's "what's this" line under the title
+		dev.larattalabs.labui.client.help.WhatsThis tip = whatsThis();
+		if (tip != null && tip.shown()) {
+			y += tip.draw(g, f, ix + 6, y + 2, iw - 12, mx, my) + 2;
+		}
 		y += drawHead(g, f, ix + 6, y + ROW_GAP, iw - 12, mx, my) + ROW_GAP * 2;
 		g.fill(ix, y - ROW_GAP, ix + iw, y - ROW_GAP + 1, UiStyle.rule());
 		y += drawRecents(g, f, ix + 6, y, iw - 12, mx, my) + ROW_GAP;
@@ -303,6 +313,35 @@ public class PickerScreen extends Screen {
 			tooltip.offer(c, mx, my);
 		}
 		tooltip.draw(g, f, mx, my);
+		extractAbove(g, mx, my, a);
+		dev.larattalabs.labui.client.help.KeysOverlay keys = keysOverlay();
+		if (keys != null) {
+			keys.draw(g, f, width, height);
+		}
+	}
+
+	/** (0.6.0) A subclass's own drawing over the picker, inside the text-size scaling and under the "?" overlay. */
+	protected void extractAbove(GuiGraphicsExtractor g, int mx, int my, float a) {
+	}
+
+	/** (0.6.0) The mod that owns this screen, for the text size ({@code TextScale}: only opted-in mods scale); null for none. */
+	protected String textScaleOwner() {
+		return null;
+	}
+
+	/** (0.6.0) A subclass's "what's this" line, drawn under the title; null for none. */
+	protected dev.larattalabs.labui.client.help.WhatsThis whatsThis() {
+		return null;
+	}
+
+	/** (0.6.0) A subclass's "?" overlay (Shift+/ or F1; "?" yields to the search field while it is focused); null for none. */
+	protected dev.larattalabs.labui.client.help.KeysOverlay keysOverlay() {
+		return null;
+	}
+
+	/** (0.6.0) True while the search field has the keyboard focus (typed "?" goes into it). */
+	protected boolean searchFocused() {
+		return focus == Focus.SEARCH;
 	}
 
 	private void drawTitle(GuiGraphicsExtractor g, Font f, int x, int y, int w, int mx, int my) {
@@ -434,7 +473,8 @@ public class PickerScreen extends Screen {
 		// fewer, wider columns when the sections are short; cells and cards grow to fill the row (up to a cap)
 		cols = SectionGrid.columns(inner, GAP, cards() ? CARD_MIN_W : CELL_MIN_W, largest);
 		cellW = SectionGrid.cellWidth(inner, GAP, cols, cards() ? CARD_MAX_W : CELL_MAX_W);
-		cellH = cards() ? sheetH() + 37 : thumbH() + 27;
+		int grow = dev.larattalabs.labui.client.ui.Panels.textGrow(); // (0.6.0) the name and tag rows grow with the text size
+		cellH = cards() ? sheetH() + 37 + 2 * grow : thumbH() + 27 + grow;
 		grid = model.grid(cols, true);
 		rowY = new int[grid.rows()];
 		int yy = 0;
@@ -605,7 +645,7 @@ public class PickerScreen extends Screen {
 		drawThumb(g, f, e, x + 1, y + 1, w - 2, sheetH, 24);
 		g.fill(x + 1, y + 1 + sheetH, x + w - 1, y + 2 + sheetH, UiStyle.rowHoverEdge());
 		drawName(g, f, e, x + 4, y + sheetH + 4, w - 8);
-		drawTags(g, f, e.tags(), x + 4, y + h - 13, w - 8);
+		drawTags(g, f, e.tags(), x + 4, y + h - 13 - dev.larattalabs.labui.client.ui.Panels.textGrow(), w - 8);
 	}
 
 	/** Small tag boxes in one row, the rest folded into "+N". */
@@ -624,7 +664,7 @@ public class PickerScreen extends Screen {
 	}
 
 	private static void tag(GuiGraphicsExtractor g, Font f, String s, int x, int y, int w) {
-		g.fill(x, y, x + w, y + 10, 0xFFE3D5BF);
+		g.fill(x, y, x + w, y + 10 + dev.larattalabs.labui.client.ui.Panels.textGrow(), 0xFFE3D5BF);
 		g.text(f, s, x + 3, y + 1, 0xFF5A4636, false);
 	}
 
@@ -657,10 +697,10 @@ public class PickerScreen extends Screen {
 			cy += bigH + 5;
 		}
 		g.text(f, TextUtil.ellipsize(f, e.label(), cw), cx, cy, UiStyle.link(), false);
-		cy += 10;
+		cy += dev.larattalabs.labui.client.ui.TextUtil.lh(10);
 		if (e.subtitle() != null) {
 			g.text(f, TextUtil.ellipsize(f, e.subtitle(), cw), cx, cy, UiStyle.mutedText(), false);
-			cy += 10;
+			cy += dev.larattalabs.labui.client.ui.TextUtil.lh(10);
 		}
 		int buttonsH = Button.H + 6;
 		boolean stack = Button.width(f, spec.pickLabel()) + fav.width(f) + 4 > cw;
@@ -687,13 +727,14 @@ public class PickerScreen extends Screen {
 		for (String line : lines) {
 			wrapped.addAll(TextUtil.wrapPlain(f, line, cw));
 		}
-		for (int i = 0; i < wrapped.size() && cy + 9 <= bottom; i++) {
-			boolean lastFits = cy + 10 + 9 > bottom;
+		int l9 = TextUtil.lh(9);
+		for (int i = 0; i < wrapped.size() && cy + l9 <= bottom; i++) {
+			boolean lastFits = cy + TextUtil.lh(10) + l9 > bottom;
 			String l = lastFits && i + 1 < wrapped.size() ? TextUtil.ellipsize(f, wrapped.get(i) + " …", cw) : wrapped.get(i);
 			g.text(f, l, cx, cy, UiStyle.INK, false);
-			cy += 10;
+			cy += dev.larattalabs.labui.client.ui.TextUtil.lh(10);
 		}
-		if (cards() && cy + 9 <= bottom) {
+		if (cards() && cy + TextUtil.lh(9) <= bottom) {
 			g.text(f, TextUtil.ellipsize(f, "Compare with… (later)", cw), cx, cy + 2, UiStyle.disabledText(), false);
 		}
 		boolean isFav = model.isFavourite(e.id());
@@ -738,6 +779,10 @@ public class PickerScreen extends Screen {
 	@Override
 	public boolean keyPressed(KeyEvent e) {
 		keyLast = true;
+		dev.larattalabs.labui.client.help.KeysOverlay keys = keysOverlay();
+		if (keys != null && keys.keyPressed(e, searchFocused())) {
+			return true;
+		}
 		if (e.isEscape()) {
 			// a typed search is cleared first; the next Esc goes back
 			if (!search.isEmpty()) {
@@ -858,6 +903,14 @@ public class PickerScreen extends Screen {
 		double mx = e.x();
 		double my = e.y();
 		int b = e.button();
+		dev.larattalabs.labui.client.help.KeysOverlay keys = keysOverlay();
+		if (keys != null && keys.mouseClicked(mx, my)) {
+			return true;
+		}
+		dev.larattalabs.labui.client.help.WhatsThis tip = whatsThis();
+		if (tip != null && tip.mouseClicked(mx, my)) {
+			return true;
+		}
 		if (back.mouseClicked(mx, my, b) || favOnly.mouseClicked(mx, my, b) || tags.mouseClicked(mx, my, b) || compare.mouseClicked(mx, my, b)
 			|| pick.mouseClicked(mx, my, b) || fav.mouseClicked(mx, my, b)) {
 			return true;
