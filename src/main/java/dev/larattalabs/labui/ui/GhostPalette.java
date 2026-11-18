@@ -66,7 +66,11 @@ public final class GhostPalette {
 		SITE_NEXT("site", 0x5FD068, 0x56B4E9, Cue.NONE),
 		// version and composite previews: neutral in both
 		DELTA("delta", 0xD8D8D8, 0xD8D8D8, Cue.NONE),
-		COMPOSITE("composite", 0xB0B0B0, 0xB0B0B0, Cue.NONE);
+		COMPOSITE("composite", 0xB0B0B0, 0xB0B0B0, Cue.NONE),
+		// (0.6.0, appended) the composite and region previews' changed and kept cells; their added and removed cells use REGION_ADDED and
+		// REGION_REFUSED, so the region plan's outline and removed mesh follow the palette too
+		COMPOSITE_CHANGED("region", 0xF2A21C, 0xE69F00, Cue.NONE),
+		COMPOSITE_KEPT("region", 0xF5E11E, 0xF0E442, Cue.NONE);
 
 		public final String group;
 		public final int standard;
