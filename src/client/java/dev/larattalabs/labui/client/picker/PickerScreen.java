@@ -275,6 +275,11 @@ public class PickerScreen extends Screen {
 		int y = py + 2;
 		drawTitle(g, f, ix, y, iw, mx, my);
 		y += TITLE_H;
+		// (0.6.0) the subclass's "what's this" line under the title
+		dev.larattalabs.labui.client.help.WhatsThis tip = whatsThis();
+		if (tip != null && tip.shown()) {
+			y += tip.draw(g, f, ix + 6, y + 2, iw - 12, mx, my) + 2;
+		}
 		y += drawHead(g, f, ix + 6, y + ROW_GAP, iw - 12, mx, my) + ROW_GAP * 2;
 		g.fill(ix, y - ROW_GAP, ix + iw, y - ROW_GAP + 1, UiStyle.rule());
 		y += drawRecents(g, f, ix + 6, y, iw - 12, mx, my) + ROW_GAP;
@@ -303,6 +308,25 @@ public class PickerScreen extends Screen {
 			tooltip.offer(c, mx, my);
 		}
 		tooltip.draw(g, f, mx, my);
+		dev.larattalabs.labui.client.help.KeysOverlay keys = keysOverlay();
+		if (keys != null) {
+			keys.draw(g, f, width, height);
+		}
+	}
+
+	/** (0.6.0) A subclass's "what's this" line, drawn under the title; null for none. */
+	protected dev.larattalabs.labui.client.help.WhatsThis whatsThis() {
+		return null;
+	}
+
+	/** (0.6.0) A subclass's "?" overlay (Shift+/ or F1; "?" yields to the search field while it is focused); null for none. */
+	protected dev.larattalabs.labui.client.help.KeysOverlay keysOverlay() {
+		return null;
+	}
+
+	/** (0.6.0) True while the search field has the keyboard focus (typed "?" goes into it). */
+	protected boolean searchFocused() {
+		return focus == Focus.SEARCH;
 	}
 
 	private void drawTitle(GuiGraphicsExtractor g, Font f, int x, int y, int w, int mx, int my) {
@@ -738,6 +762,10 @@ public class PickerScreen extends Screen {
 	@Override
 	public boolean keyPressed(KeyEvent e) {
 		keyLast = true;
+		dev.larattalabs.labui.client.help.KeysOverlay keys = keysOverlay();
+		if (keys != null && keys.keyPressed(e, searchFocused())) {
+			return true;
+		}
 		if (e.isEscape()) {
 			// a typed search is cleared first; the next Esc goes back
 			if (!search.isEmpty()) {
@@ -858,6 +886,14 @@ public class PickerScreen extends Screen {
 		double mx = e.x();
 		double my = e.y();
 		int b = e.button();
+		dev.larattalabs.labui.client.help.KeysOverlay keys = keysOverlay();
+		if (keys != null && keys.mouseClicked(mx, my)) {
+			return true;
+		}
+		dev.larattalabs.labui.client.help.WhatsThis tip = whatsThis();
+		if (tip != null && tip.mouseClicked(mx, my)) {
+			return true;
+		}
 		if (back.mouseClicked(mx, my, b) || favOnly.mouseClicked(mx, my, b) || tags.mouseClicked(mx, my, b) || compare.mouseClicked(mx, my, b)
 			|| pick.mouseClicked(mx, my, b) || fav.mouseClicked(mx, my, b)) {
 			return true;
