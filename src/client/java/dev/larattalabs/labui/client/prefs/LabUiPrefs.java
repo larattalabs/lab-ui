@@ -105,6 +105,7 @@ public final class LabUiPrefs {
 	/** (PR A1) Applies the stored settings for this session; a consumer calls it at client init (idempotent). */
 	public static void applyStored() {
 		dev.larattalabs.labui.ui.GhostPalette.use(ghostPalette());
+		dev.larattalabs.labui.ui.TextScale.prefer(integer("textScale", 100));
 	}
 
 	/** The default tips store (lab-ui's file). */

@@ -259,6 +259,11 @@ public class PickerScreen extends Screen {
 
 	@Override
 	public void extractRenderState(GuiGraphicsExtractor g, int mx, int my, float a) {
+		// (PR A3) the text size: drawn at the GUI size over the scale, so the layout reflows (opted-in mods only)
+		dev.larattalabs.labui.client.prefs.TextScaleHost.render(this, textScaleOwner(), g, mx, my, (gg, x, y) -> extractScaled(gg, x, y, a));
+	}
+
+	private void extractScaled(GuiGraphicsExtractor g, int mx, int my, float a) {
 		super.extractRenderState(g, mx, my, a);
 		Font f = font;
 		int px = 6;
@@ -312,6 +317,11 @@ public class PickerScreen extends Screen {
 		if (keys != null) {
 			keys.draw(g, f, width, height);
 		}
+	}
+
+	/** (0.6.0) The mod that owns this screen, for the text size ({@code TextScale}: only opted-in mods scale); null for none. */
+	protected String textScaleOwner() {
+		return null;
 	}
 
 	/** (0.6.0) A subclass's "what's this" line, drawn under the title; null for none. */
@@ -883,6 +893,7 @@ public class PickerScreen extends Screen {
 
 	@Override
 	public boolean mouseClicked(MouseButtonEvent e, boolean doubleClick) {
+		e = dev.larattalabs.labui.client.prefs.TextScaleHost.map(this, textScaleOwner(), e); // (PR A3)
 		double mx = e.x();
 		double my = e.y();
 		int b = e.button();
@@ -952,6 +963,9 @@ public class PickerScreen extends Screen {
 
 	@Override
 	public boolean mouseDragged(MouseButtonEvent e, double dx, double dy) {
+		e = dev.larattalabs.labui.client.prefs.TextScaleHost.map(this, textScaleOwner(), e); // (PR A3)
+		dx = dev.larattalabs.labui.client.prefs.TextScaleHost.map(this, textScaleOwner(), dx);
+		dy = dev.larattalabs.labui.client.prefs.TextScaleHost.map(this, textScaleOwner(), dy);
 		if (dragGrab >= 0) {
 			int viewH = gh - 8;
 			gridScroll = ScrollMath.offsetForThumbTop(viewH, contentH, viewH, (int) e.y() - (gy + 4) - dragGrab);
@@ -962,6 +976,7 @@ public class PickerScreen extends Screen {
 
 	@Override
 	public boolean mouseReleased(MouseButtonEvent e) {
+		e = dev.larattalabs.labui.client.prefs.TextScaleHost.map(this, textScaleOwner(), e); // (PR A3)
 		if (dragGrab >= 0) {
 			dragGrab = -1;
 			return true;
@@ -971,6 +986,8 @@ public class PickerScreen extends Screen {
 
 	@Override
 	public boolean mouseScrolled(double mx, double my, double scrollX, double scrollY) {
+		mx = dev.larattalabs.labui.client.prefs.TextScaleHost.map(this, textScaleOwner(), mx); // (PR A3)
+		my = dev.larattalabs.labui.client.prefs.TextScaleHost.map(this, textScaleOwner(), my);
 		if (mx >= gx && mx < gx + gw && my >= gy && my < gy + gh) {
 			gridScroll = Math.max(0, Math.min(gridScroll - (int) Math.signum(scrollY) * (cellH + GAP) / 2 * 2, ScrollMath.maxOffset(contentH, gh - 8)));
 			return true;
