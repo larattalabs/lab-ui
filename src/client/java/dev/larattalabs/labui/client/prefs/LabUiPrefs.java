@@ -91,6 +91,22 @@ public final class LabUiPrefs {
 		save();
 	}
 
+	/** (PR A1) The stored ghost palette (default standard). */
+	public static dev.larattalabs.labui.ui.GhostPalette.Palette ghostPalette() {
+		return dev.larattalabs.labui.ui.GhostPalette.Palette.of(string("ghostPalette", "standard"));
+	}
+
+	/** (PR A1) Sets, stores and applies the ghost palette (every mod's ghosts follow it). */
+	public static void setGhostPalette(dev.larattalabs.labui.ui.GhostPalette.Palette p) {
+		set("ghostPalette", p.id());
+		dev.larattalabs.labui.ui.GhostPalette.use(p);
+	}
+
+	/** (PR A1) Applies the stored settings for this session; a consumer calls it at client init (idempotent). */
+	public static void applyStored() {
+		dev.larattalabs.labui.ui.GhostPalette.use(ghostPalette());
+	}
+
 	/** The default tips store (lab-ui's file). */
 	public static dev.larattalabs.labui.client.help.WhatsThis.Store tips() {
 		return TIPS;
