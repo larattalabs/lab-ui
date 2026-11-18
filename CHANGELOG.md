@@ -1,5 +1,25 @@
 # Changelog
 
+## Unreleased (0.6.0, L-0.6: Architect's player-ready pass)
+
+Additive: every 0.5.x class and method keeps working. Visible default changes: none (the ghost palette stays `standard`, the
+text size 100 %, and only mods that opt in are scaled). Notify AgentCraft Worlds, Architect and Steward.
+
+**New API**
+- `ui.KeyDefaults`: lab-ui's default key codes as plain numbers (`JOBS` = K) and Steward's reserved Y/I/U (`STEWARD_RESERVED`), so a
+  consumer's unit test can check its defaults without a bootstrap. `JobBoard` registers from it.
+- `ui.Glossary` (sections per mod, a reserved slot with the words it must define: Steward's, S-PR-3), `ui.WordingLint` (the "design,
+  never blueprint" rule over lang values and source literals, for any mod's test), `client.help.GlossaryView`.
+- `client.help.WhatsThis` (a screen's one-line "what's this" with a ×, persisted by key in a `Store`; any mod passes its own or
+  `LabUiPrefs.tips()`), `client.help.KeysOverlay` (the "?" overlay: Shift+/ or F1, keys read live, the screen's terms), `ui.HelpKeys`.
+- `PickerScreen` hooks: `whatsThis()`, `keysOverlay()`, `searchFocused()`, `textScaleOwner()` (all default to none).
+- `ui.GhostPalette` (standard and Okabe-Ito ghost colours by category, the two-tone outline, each category's second cue), `ui.GhostCues`
+  (the cue geometry over a caller's box primitive), `ui.Cvd` (Machado 2009 simulation, ΔE76). `GhostPaletteTest`: Okabe-Ito min
+  ΔE 16.7 in the ghost and region groups; the outline >= 4.43:1 on every terrain sample.
+- `ui.TextScale` (100/125/150 %, per-mod opt-in, default off for every mod; the clamp to 320 x 240 logical) and
+  `client.prefs.TextScaleHost` (draws a screen at its GUI size over the scale, maps the mouse).
+- `client.prefs.LabUiPrefs`: `config/lab_ui.json` (`tips.hidden[]`, `ghostPalette`, `textScale`); `applyStored()` at a consumer's init.
+
 ## 0.5.0 (2026-11-15)
 
 A minor release: additive except for the visible default changes listed under **Looks**. Every 0.4.x class and method keeps
