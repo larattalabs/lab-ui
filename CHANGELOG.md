@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.6.1 (2026-11-19, KLW: key labels fitted by width)
+
+Additive: no member removed or renamed. **Visible default changes:** `KeyLabels.readable` / `KeyLabels.label` no longer cut names at
+9 characters ("Mouse Button 4" stays whole, not "Mouse But"); a consumer that drew `label()` into a fixed-width keycap should cut it
+with `KeyLabels.fit` / `fitHints`. The "?" `KeysOverlay` now cuts a key wider than its column (a third of the panel) by measured width
+with "…", so it no longer draws over the verb, at 100/125/150 % text. Notify AgentCraft Worlds, Architect and Steward (Architect's PR3
+`fitted()` wrapper becomes redundant but harmless).
+
+**New API**
+- `ui.KeyFit` (pure): `readable` (punctuation spelled out, names whole), `fit(s, max, width)` (cut by measured width, ends with "…",
+  never empty, whole code points), `fitHints` (each hint pair fits the row alone), `fitRows` (the overlay's key column), `ELLIPSIS`.
+  Same rules as Architect's `PlacingKeys.fit` / `fitHints`. `KeyFitTest`.
+- `client.ui.KeyLabels.fit(Font, label, maxCapW)` and `fitHints(Font, keyThenVerb, inner)`: the same with the keycap padding.
+
 ## 0.6.0 (2026-11-18, L-0.6: Architect's player-ready pass)
 
 Additive: every 0.5.x class and method keeps working. Visible default changes: none (the ghost palette stays `standard`, the
