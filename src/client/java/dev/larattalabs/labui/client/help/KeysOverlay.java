@@ -1,11 +1,13 @@
 package dev.larattalabs.labui.client.help;
 
 import dev.larattalabs.labui.client.hud.UiBits;
+import dev.larattalabs.labui.client.ui.Kit;
 import dev.larattalabs.labui.client.ui.Panels;
 import dev.larattalabs.labui.client.ui.TextUtil;
 import dev.larattalabs.labui.client.ui.UiStyle;
 import dev.larattalabs.labui.ui.Glossary;
 import dev.larattalabs.labui.ui.HelpKeys;
+import dev.larattalabs.labui.ui.KeyFit;
 import java.util.List;
 import java.util.function.Supplier;
 import net.minecraft.client.gui.Font;
@@ -38,7 +40,7 @@ public final class KeysOverlay {
 		open = on;
 	}
 
-	/** The rows as drawn now (DevBridge and tests: the live labels). */
+	/** The rows as drawn now (DevBridge and tests: the live labels, whole; {@link #draw} cuts a key wider than its column). */
 	public List<HelpKeys.Row> rows() {
 		return HelpKeys.withClose(rows.get());
 	}
@@ -90,6 +92,9 @@ public final class KeysOverlay {
 			keyCol = Math.max(keyCol, UiBits.keycapWidth(font, r.key()));
 		}
 		keyCol = Math.min(keyCol, inner / 3);
+		// (KLW) the column is capped at a third, so cut a wider key by measured width (at the active text size) to fit it
+		Kit.Padding cap = Kit.padding("keycap");
+		rs = KeyFit.fitRows(rs, keyCol, cap.left() + cap.right(), font::width);
 		int verbW = inner - keyCol - 8;
 		int keysH = 0;
 		for (HelpKeys.Row r : rs) {
