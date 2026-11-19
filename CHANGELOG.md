@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased (KLW: key labels fitted by width)
+## 0.6.1 (2026-11-19, KLW: key labels fitted by width)
 
 Additive: no member removed or renamed. **Visible default changes:** `KeyLabels.readable` / `KeyLabels.label` no longer cut names at
 9 characters ("Mouse Button 4" stays whole, not "Mouse But"); a consumer that drew `label()` into a fixed-width keycap should cut it

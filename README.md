@@ -24,7 +24,7 @@ Lab UI is the shared client UI library of the Laratta Labs Minecraft mods (Agent
 
 ### Use it in your mod
 
-The jar is published to GitHub Packages at `https://maven.pkg.github.com/larattalabs/lab-ui`, as `dev.larattalabs:lab_ui:<version>` (latest: `0.6.0`, the L-0.6 batch: text scale, ghost palette and cues, help overlays, glossary and key defaults; `0.5.0` the L-0.5 batch: stepper, disabled reasons, ideas and the idle pill, chat-safe HUD, shared helpers; `0.4.1` paper-contrast text tokens and placeholder colour from the 2026-11-12 UI audit; `0.4.0` added the [Jobs & spend panel](#jobs--spend-panel-040), `0.3.0` added [on-dark colour tokens and shared HUD zones](#hud-zones-and-on-dark-tokens-030), `0.2.0` the [components](#components-020)).
+The jar is published to GitHub Packages at `https://maven.pkg.github.com/larattalabs/lab-ui`, as `dev.larattalabs:lab_ui:<version>` (latest: `0.6.1`, KLW: key names kept whole and fitted by measured width (`KeyFit`); `0.6.0` the L-0.6 batch: text scale, ghost palette and cues, help overlays, glossary and key defaults; `0.5.0` the L-0.5 batch: stepper, disabled reasons, ideas and the idle pill, chat-safe HUD, shared helpers; `0.4.1` paper-contrast text tokens and placeholder colour from the 2026-11-12 UI audit; `0.4.0` added the [Jobs & spend panel](#jobs--spend-panel-040), `0.3.0` added [on-dark colour tokens and shared HUD zones](#hud-zones-and-on-dark-tokens-030), `0.2.0` the [components](#components-020)).
 
 **1. Get a token.** GitHub Packages' Maven registry needs one **even for public packages**: a token with the `read:packages` scope (a classic personal access token, or your GitHub CLI login). With the GitHub CLI:
 
