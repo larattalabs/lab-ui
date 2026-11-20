@@ -1,11 +1,12 @@
 # Changelog
 
-## Unreleased (for 0.6.2, LUI3: Steward's accessibility asks)
+## 0.6.2 (LUI3: Steward's accessibility asks)
 
-Additive, so a patch: no member removed or renamed, no signature changed, `mod_version` stays 0.6.1 until the release. **Visible default
-changes:** only for ideas (`JobRow.offer`): the Jobs panel's detail pane now draws an idea with the still idle paper dot and "idea", as its
-list row already did, not the "working" dot and "queued". Only rows published with `offer(true)` change; every other row, pill and
-overlay draws exactly as in 0.6.1. Notify AgentCraft Worlds, Architect and Steward.
+Additive, so a patch: no member removed or renamed, no signature changed. **Visible default
+changes:** two. Ideas (`JobRow.offer`): the Jobs panel's detail pane now draws an idea with the still idle paper dot and "idea", as its
+list row already did, not the "working" dot and "queued". Only rows published with `offer(true)` change; every other row and pill
+draws exactly as in 0.6.1. And KeysOverlay's default "+N more" line is now cut with "…" by width like its footer, so at
+narrow widths or with a wider font it can draw shorter than in 0.6.1. Notify AgentCraft Worlds, Architect and Steward.
 
 **New API**
 - `ui.StatusDots` (pure): the six status families' colours in `GhostPalette.Palette.STANDARD` (today's, the default) and `OKABE_ITO`
