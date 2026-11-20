@@ -95,6 +95,19 @@ public final class Kit {
 		return id("dot_" + family.toLowerCase(Locale.ROOT) + "_paper");
 	}
 
+	/**
+	 * (0.6.2) {@link #dot(String, boolean)} in a palette: {@code GhostPalette.Palette.OKABE_ITO} gives the colour-blind-safe dot
+	 * ({@code dot_<family>_okabe[_halo]}), STANDARD (or null) today's. Pass {@code GhostPalette.current()} to follow the player's setting.
+	 */
+	public static Identifier dot(String family, boolean halo, dev.larattalabs.labui.ui.GhostPalette.Palette palette) {
+		return id(dev.larattalabs.labui.ui.StatusDots.sprite(family, palette, halo, false));
+	}
+
+	/** (0.6.2) {@link #paperDot(String)} in a palette (see {@link #dot(String, boolean, dev.larattalabs.labui.ui.GhostPalette.Palette)}). */
+	public static Identifier paperDot(String family, dev.larattalabs.labui.ui.GhostPalette.Palette palette) {
+		return id(dev.larattalabs.labui.ui.StatusDots.sprite(family, palette, false, true));
+	}
+
 	/** Task card background by task status (todo doing review done blocked). */
 	public static Identifier card(String taskStatus) {
 		return id("card_" + taskStatus.toLowerCase(Locale.ROOT));

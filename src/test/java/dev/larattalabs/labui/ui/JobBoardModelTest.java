@@ -230,4 +230,20 @@ class JobBoardModelTest {
 		assertFalse(r.offer());
 		assertFalse(r.withMod("m").offer());
 	}
+
+	@Test
+	void anIdeaIsNeutralInTheDetailPaneAsInTheRow() {
+		JobRow idea = JobRow.builder("s:idea", "settlement", "Willow Bend", JobState.QUEUED).offer(true).build();
+		assertEquals("idle", JobBoardModel.dotFamily(idea));
+		assertEquals("idea", JobBoardModel.statusLabel(idea));
+		JobRow queued = row("q", JobState.QUEUED, 1);
+		assertEquals("working", JobBoardModel.dotFamily(queued), "a plain queued job is unchanged");
+		assertEquals("queued", JobBoardModel.statusLabel(queued));
+		// an offer that ended or waits is not an idea: its state shows
+		JobRow taken = JobRow.builder("s:t", "settlement", "Taken", JobState.DONE).offer(true).build();
+		assertEquals("done", JobBoardModel.dotFamily(taken));
+		assertEquals("done", JobBoardModel.statusLabel(taken));
+		assertEquals("waiting", JobBoardModel.dotFamily(JobState.NEEDS_YOU));
+		assertEquals("idle", JobBoardModel.dotFamily(JobState.CANCELLED));
+	}
 }

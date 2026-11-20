@@ -203,13 +203,22 @@ public final class UiBits {
 
 	/** {@link #dotPill} with the edge chosen: {@code needsYou} = the brass pill sprite, else the chip fill and edge. Since the release after 0.4.0. */
 	public static int dotPill(GuiGraphicsExtractor g, Font font, String family, String text, int x, int y, int textArgb, boolean needsYou) {
+		return dotPill(g, font, family, text, x, y, textArgb, needsYou, null);
+	}
+
+	/**
+	 * (0.6.2) {@link #dotPill} with the dot in a palette: {@code GhostPalette.Palette.OKABE_ITO} draws the colour-blind-safe paper dot; null or
+	 * STANDARD today's.
+	 */
+	public static int dotPill(GuiGraphicsExtractor g, Font font, String family, String text, int x, int y, int textArgb, boolean needsYou,
+		dev.larattalabs.labui.ui.GhostPalette.Palette palette) {
 		Kit.Padding p = Kit.padding("pill");
 		int w = p.left() + 7 + 3 + font.width(text) + p.right();
 		int ph = 11 + Panels.textGrow(); // (0.6.0) grows with the text size
 		if (needsYou) Panels.sprite(g, Kit.PILL, x, y, w, ph);
 		else dev.larattalabs.labui.client.widget.Paint.box(g, x, y, w, ph, UiStyle.chip(), UiStyle.chipEdge());
 		// 0.5.0: the paper dot (3:1 on the pill and chip fills; idle and done were about 2:1)
-		Panels.sprite(g, Kit.paperDot(family), x + p.left() - 1, y + 2, 7, 7);
+		Panels.sprite(g, Kit.paperDot(family, palette), x + p.left() - 1, y + 2, 7, 7);
 		g.text(font, text, x + p.left() + 9, y + p.top(), textArgb, false);
 		return w;
 	}
@@ -221,9 +230,14 @@ public final class UiBits {
 
 	/** A status dot with a pulsing halo (the waiting pulse: alpha 0..110 over 1200 ms, ease in-out). */
 	public static void pulsingDot(GuiGraphicsExtractor g, String family, int x, int y) {
+		pulsingDot(g, family, x, y, null);
+	}
+
+	/** (0.6.2) {@link #pulsingDot} in a palette (null or STANDARD: today's dot). */
+	public static void pulsingDot(GuiGraphicsExtractor g, String family, int x, int y, dev.larattalabs.labui.ui.GhostPalette.Palette palette) {
 		float t = pulse();
-		Panels.sprite(g, Kit.dot(family, true), x - 2, y - 2, 11, 11, ((int) (110 * t + 40) << 24) | 0xFFFFFF);
-		Panels.sprite(g, Kit.dot(family, false), x, y, 7, 7);
+		Panels.sprite(g, Kit.dot(family, true, palette), x - 2, y - 2, 11, 11, ((int) (110 * t + 40) << 24) | 0xFFFFFF);
+		Panels.sprite(g, Kit.dot(family, false, palette), x, y, 7, 7);
 	}
 
 	/** 0..1 ease-in-out pulse with the ui-style period. */

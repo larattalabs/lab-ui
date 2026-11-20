@@ -147,6 +147,17 @@ public final class Panels {
 		sprite(g, Kit.paperDot(family), x, y, 7, 7);
 	}
 
+	/** (0.6.2) {@link #dot} in a palette ({@link Kit#dot(String, boolean, dev.larattalabs.labui.ui.GhostPalette.Palette)}). */
+	public static void dot(GuiGraphicsExtractor g, String family, int x, int y, boolean halo, dev.larattalabs.labui.ui.GhostPalette.Palette palette) {
+		int s = halo ? 11 : 7;
+		sprite(g, Kit.dot(family, halo, palette), x, y, s, s);
+	}
+
+	/** (0.6.2) {@link #paperDot} in a palette ({@link Kit#paperDot(String, dev.larattalabs.labui.ui.GhostPalette.Palette)}). */
+	public static void paperDot(GuiGraphicsExtractor g, String family, int x, int y, dev.larattalabs.labui.ui.GhostPalette.Palette palette) {
+		sprite(g, Kit.paperDot(family, palette), x, y, 7, 7);
+	}
+
 	/** 6 px progress bar, {@code p} in 0..1, fill tint brass|clay|red|sage|teal. */
 	public static void progress(GuiGraphicsExtractor g, int x, int y, int w, double p, String tint) {
 		sprite(g, Kit.PROGRESS_TRACK, x, y, w, 6);
