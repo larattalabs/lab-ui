@@ -1,5 +1,34 @@
 # Changelog
 
+## Unreleased (for 0.6.2, LUI3: Steward's accessibility asks)
+
+Additive, so a patch: no member removed or renamed, no signature changed, `mod_version` stays 0.6.1 until the release. **Visible default
+changes:** only for ideas (`JobRow.offer`): the Jobs panel's detail pane now draws an idea with the still idle paper dot and "idea", as its
+list row already did, not the "working" dot and "queued". No consumer publishes ideas today except through Steward's offers, so Architect
+and AgentCraft Worlds draw exactly as in 0.6.1. Notify AgentCraft Worlds, Architect and Steward.
+
+**New API**
+- `ui.StatusDots` (pure): the six status families' colours in `GhostPalette.Palette.STANDARD` (today's, the default) and `OKABE_ITO`
+  (Okabe &amp; Ito's colour-blind-safe hues, `status_okabe` / `status_okabe_paper` in ui-style.json), `sprite(...)`, `minDeltaE(...)`.
+  Sprites `dot_<family>_okabe.png`, `_okabe_halo.png`, `_okabe_paper.png`. Under protan, deutan and tritan simulation the Okabe dots are at
+  least ΔE76 22.2 apart on the HUD and 9.9 on paper (the standard dots: 5.7 and 2.8); the paper set is at least 3:1 on every paper surface.
+  `StatusDotsTest`.
+- Palette overloads, all opt-in (null or STANDARD draws today's dot): `Kit.dot(family, halo, palette)`, `Kit.paperDot(family, palette)`,
+  `Panels.dot(g, family, x, y, halo, palette)`, `Panels.paperDot(g, family, x, y, palette)`, `UiBits.dotPill(..., needsYou, palette)`,
+  `UiBits.pulsingDot(g, family, x, y, palette)`, `DisplayDraw.dot(family, halo, palette)` (cached per palette). Pass
+  `GhostPalette.current()` to follow the player's colour-blind setting, or `OKABE_ITO` from a mod's own setting, for the inbox, the
+  building pill and the nameplate.
+- `JobBoardModel.dotFamily(JobState)`, `dotFamily(JobRow)` (an idea is idle) and `statusLabel(JobRow)` ("idea" for an idea).
+- `KeysOverlay.helpPlace(String)`, `footer(String)`, `moreTerms(IntFunction<String>)` (fluent) and `footer()` / `moreTerms(int)`: the footer
+  and the "+N more" line, Architect's "Status &gt; Help" wording by default. `HelpKeys.CLOSE_HINT`, `DEFAULT_HELP_PLACE`, `DEFAULT_FOOTER`,
+  `footer(place)`, `moreTerms(n, place)`.
+- `HelpKeys.closeHit(glyphX, glyphW, lineY, lineH)`, `inside(box, mx, my)`, `MIN_HIT` (20).
+
+**Looks**
+- `WhatsThis`'s × takes clicks over at least 20 x 20 (it was 18 x 16 at 100 % text), grown left and up from the 0.6.0 box so it never
+  reaches the controls under the line; the glyph is where it was. Its muted text (`semantic.muted` #655E55) is 4.92:1 on the inset
+  (#E9E1D3) and 5.58:1 on cream (#F4EFE6, where `PickerScreen` draws it), so its colour is unchanged (`HelpKeysTest`).
+
 ## 0.6.1 (2026-11-19, KLW: key labels fitted by width)
 
 Additive: no member removed or renamed. **Visible default changes:** `KeyLabels.readable` / `KeyLabels.label` no longer cut names at
