@@ -54,6 +54,8 @@ Art and style data (upstream AgentCraft "Warm Studio" art track)
 src/main/resources/assets/lab_ui/textures/gui/sprites/kit/*.png and *.png.mcmeta
     All 114 files are byte-identical to upstream AgentCraft's assets/agentcraft/textures/gui/sprites/kit/
     (added by blendi-remade on 2026-10-01, commit e67ab16); the fork only moved them.
+    Exceptions, lab-ui recolours of upstream's dot sprites (same shape, new colours): the 0.5.0 paper dots
+    dot_<family>_paper.png and the 0.6.2 Okabe-Ito dots dot_<family>_okabe.png, _okabe_halo.png and _okabe_paper.png.
 src/main/resources/assets/lab_ui/gui/kit.json
     Upstream's file with the namespace rewritten (agentcraft -> agentcraft_worlds -> lab_ui).
 src/main/resources/assets/lab_ui/gui/ui-style.json

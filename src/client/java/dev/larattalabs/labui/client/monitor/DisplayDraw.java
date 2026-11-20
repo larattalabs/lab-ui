@@ -231,6 +231,14 @@ public final class DisplayDraw {
 		return DOTS.computeIfAbsent(halo ? family + "+" : family, k -> dev.larattalabs.labui.client.ui.Kit.dot(family, halo));
 	}
 
+	/** (0.6.2) {@link #dot(String, boolean)} in a palette (null or STANDARD: today's sprite), cached per palette. */
+	public static Identifier dot(String family, boolean halo, dev.larattalabs.labui.ui.GhostPalette.Palette palette) {
+		if (palette == null || palette == dev.larattalabs.labui.ui.GhostPalette.Palette.STANDARD) {
+			return dot(family, halo);
+		}
+		return DOTS.computeIfAbsent(palette.id() + ":" + family + (halo ? "+" : ""), k -> dev.larattalabs.labui.client.ui.Kit.dot(family, halo, palette));
+	}
+
 	public static int mulAlpha(int argb, int alpha) {
 		int a = ((argb >>> 24) * alpha) / 255;
 		return (a << 24) | (argb & 0xFFFFFF);

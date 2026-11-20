@@ -264,6 +264,24 @@
     "error": "#C2413B",
     "done": "#668361"
   },
+  "status_okabe": {
+    "_note": "0.6.2 (opt-in): Okabe-Ito status dots for the dark HUD and the world (dot_<family>_okabe[_halo].png; StatusDots, GhostPalette.Palette.OKABE_ITO). Okabe & Ito's hues, lightened or darkened a little so the six stay at least 15 dE76 apart under protan, deutan and tritan simulation (StatusDotsTest). The standard status block stays the default.",
+    "idle": "#B0B0B0",
+    "thinking": "#FFFF4C",
+    "working": "#63CFFF",
+    "waiting": "#F2A700",
+    "error": "#D55E00",
+    "done": "#008E68"
+  },
+  "status_okabe_paper": {
+    "_note": "0.6.2 (opt-in): the Okabe-Ito dots for paper (dot_<family>_okabe_paper.png): the same hues darkened to at least 3:1 on every paper surface, at least 9.5 dE76 apart under every vision (the standard paper dots are 2.8 apart: thinking and waiting). StatusDotsTest checks both.",
+    "idle": "#686868",
+    "thinking": "#7D7722",
+    "working": "#377395",
+    "waiting": "#654600",
+    "error": "#AA4B00",
+    "done": "#008B65"
+  },
   "semantic_contrast": {
     "_note": "ui/polish-1: every semantic text token against every paper surface it is drawn on (PaperContrastTest recomputes this). muted on the selected fill passes; muted over a translucent clay wash (e.g. 0x30B4553A) does not, so selected rows use semantic.selected. placeholder (a field's empty-state words) is muted: ink_ui.ghost_on_paper #BCAD95 was 1.9:1 on the field; ghost_on_paper stays for the typed-ahead completion only.",
     "_surfaces": {
