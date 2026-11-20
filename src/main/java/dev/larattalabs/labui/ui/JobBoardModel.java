@@ -408,6 +408,28 @@ public final class JobBoardModel {
 		return out;
 	}
 
+	/** A state's status-dot family (idle thinking working waiting error done), as the Jobs panel draws it. Since 0.6.2. */
+	public static String dotFamily(JobState s) {
+		return switch (s) {
+			case NEEDS_YOU -> "waiting";
+			case RUNNING, QUEUED -> "working";
+			case HELD, PAUSED_BUDGET -> "thinking";
+			case DONE -> "done";
+			case FAILED -> "error";
+			case CANCELLED -> "idle";
+		};
+	}
+
+	/** A row's dot family: an idea is idle, never "working" (the list row since 0.5.0, the detail pane since 0.6.2). */
+	public static String dotFamily(JobRow r) {
+		return r.idea() ? "idle" : dotFamily(r.state());
+	}
+
+	/** A row's status word in the detail pane: "idea" for an idea (not its "queued" state), else {@link JobState#label}. Since 0.6.2. */
+	public static String statusLabel(JobRow r) {
+		return r.idea() ? "idea" : r.state().label();
+	}
+
 	/**
 	 * The idle pill (0.5.0): "1 idea for you · Willow Bend", "3 ideas for you · Market stall" when nothing waits and ideas do; null otherwise
 	 * ({@link #pillText} wins while anything waits). Ideas never pulse or say "need you".

@@ -378,14 +378,7 @@ public class JobsScreen extends Screen {
 	}
 
 	private static String family(JobState s) {
-		return switch (s) {
-			case NEEDS_YOU -> "waiting";
-			case RUNNING, QUEUED -> "working";
-			case HELD, PAUSED_BUDGET -> "thinking";
-			case DONE -> "done";
-			case FAILED -> "error";
-			case CANCELLED -> "idle";
-		};
+		return JobBoardModel.dotFamily(s);
 	}
 
 	private int kindFill(String mod) {
@@ -422,7 +415,7 @@ public class JobsScreen extends Screen {
 			UiBits.pulsingDot(g, "waiting", cx, y + (h - 7) / 2);
 		} else {
 			// 0.5.0: the paper dots (3:1 on the list's fills); an idea is idle, not running
-			Panels.paperDot(g, r.idea() ? "idle" : family(r.state()), cx, y + (h - 7) / 2);
+			Panels.paperDot(g, JobBoardModel.dotFamily(r), cx, y + (h - 7) / 2);
 		}
 		cx += 11;
 		int kw = Math.min(kindW, Math.max(30, w / 6));
@@ -536,8 +529,13 @@ public class JobsScreen extends Screen {
 		}
 		cy += 2;
 		if (cy + 9 <= cBottom) {
-			Panels.dot(g, family(r.state()), tx, cy, false);
-			put(g, f, TextUtil.ellipsize(f, r.state().label() + " · " + modName(r.mod()) + " " + r.kind(), tw - 11), tx + 11, UiStyle.INK);
+			if (r.idea()) {
+				// 0.6.2 (Steward LUI3): an idea gets the row's neutral treatment, the still idle paper dot and "idea", not "working"/"queued"
+				Panels.paperDot(g, JobBoardModel.dotFamily(r), tx, cy);
+			} else {
+				Panels.dot(g, family(r.state()), tx, cy, false);
+			}
+			put(g, f, TextUtil.ellipsize(f, JobBoardModel.statusLabel(r) + " · " + modName(r.mod()) + " " + r.kind(), tw - 11), tx + 11, UiStyle.INK);
 			cy += 1;
 		}
 		for (String line : first(TextUtil.wrapPlain(f, r.step(), tw), 3)) {
