@@ -28,6 +28,7 @@ public final class WhatsThis {
 	private final String text;
 	private int cx = -1000;
 	private int cy;
+	private int glyphW = 5;
 
 	public WhatsThis(Store store, String key, String text) {
 		if (!HelpKeys.tipFits(text)) {
@@ -65,6 +66,7 @@ public final class WhatsThis {
 		int xw = font.width(x0);
 		cx = x + w - xw - 2;
 		cy = y;
+		glyphW = xw;
 		boolean hov = over(mx, my);
 		int h = TextUtil.lh(H);
 		g.text(font, TextUtil.ellipsize(font, text, w - xw - 10), x, y + 2, UiStyle.mutedText(), false);
@@ -73,7 +75,8 @@ public final class WhatsThis {
 	}
 
 	private boolean over(double mx, double my) {
-		return mx >= cx - 6 && mx < cx + 12 && my >= cy - 2 && my < cy + TextUtil.lh(H) + 2; // a hit area wider than the glyph
+		// (0.6.2) at least 20 x 20 around the glyph (it was 18 x 16), grown left and up; the glyph stays where it was
+		return HelpKeys.inside(HelpKeys.closeHit(cx, glyphW, cy, TextUtil.lh(H)), mx, my);
 	}
 
 	/** A click on the ×: hides the line. True when it was consumed. */

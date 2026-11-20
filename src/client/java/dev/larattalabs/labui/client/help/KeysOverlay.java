@@ -25,11 +25,46 @@ public final class KeysOverlay {
 	private final Supplier<List<HelpKeys.Row>> rows;
 	private final List<String> terms;
 	private boolean open;
+	private String footer = HelpKeys.DEFAULT_FOOTER;
+	private java.util.function.IntFunction<String> more = n -> HelpKeys.moreTerms(n, HelpKeys.DEFAULT_HELP_PLACE);
 
 	public KeysOverlay(String title, Supplier<List<HelpKeys.Row>> rows, List<String> terms) {
 		this.title = title;
 		this.rows = rows;
 		this.terms = List.copyOf(terms);
+	}
+
+	/**
+	 * (0.6.2) Names where this mod lists every term, for both the footer and the "+N more" line: {@code helpPlace("the Steward book")} gives
+	 * "Esc or ? closes · the Steward book lists every term" and "+3 more in the Steward book"; null drops the place from both. The default
+	 * is Architect's "Status > Help". Returns this.
+	 */
+	public KeysOverlay helpPlace(String place) {
+		footer = HelpKeys.footer(place);
+		more = n -> HelpKeys.moreTerms(n, place);
+		return this;
+	}
+
+	/** (0.6.2) The footer row's text (default {@link HelpKeys#DEFAULT_FOOTER}); null: the close hint alone. Returns this. */
+	public KeysOverlay footer(String text) {
+		footer = text == null ? HelpKeys.CLOSE_HINT : text;
+		return this;
+	}
+
+	/** (0.6.2) The "+N more" line's text for N terms that did not fit (default "+N more in Status > Help"); null: the default. Returns this. */
+	public KeysOverlay moreTerms(java.util.function.IntFunction<String> text) {
+		more = text == null ? n -> HelpKeys.moreTerms(n, HelpKeys.DEFAULT_HELP_PLACE) : text;
+		return this;
+	}
+
+	/** The footer as drawn (0.6.2). */
+	public String footer() {
+		return footer;
+	}
+
+	/** The "+N more" line as drawn for {@code n} terms (0.6.2). */
+	public String moreTerms(int n) {
+		return more.apply(n);
 	}
 
 	public boolean isOpen() {
@@ -151,12 +186,12 @@ public final class KeysOverlay {
 				y += drawTerm(g, font, found.get(i), px + pad, y, inner);
 			}
 			if (shownTerms < found.size()) {
-				g.text(font, "+" + (found.size() - shownTerms) + " more in Status > Help", px + pad, y, UiStyle.mutedText(), false);
+				g.text(font, TextUtil.ellipsize(font, moreTerms(found.size() - shownTerms), inner), px + pad, y, UiStyle.mutedText(), false);
 			}
 		}
 		int fy = py + ph - pad - TextUtil.lh(9);
 		g.fill(px + pad, fy - 4, px + pw - pad, fy - 3, UiStyle.rule());
-		g.text(font, TextUtil.ellipsize(font, "Esc or ? closes · Status > Help lists every term", inner), px + pad, fy, UiStyle.mutedText(), false);
+		g.text(font, TextUtil.ellipsize(font, this.footer, inner), px + pad, fy, UiStyle.mutedText(), false);
 	}
 
 	private static int termHeight(Font font, Glossary.Term t, int w) {
