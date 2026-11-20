@@ -4,12 +4,12 @@
 
 Additive, so a patch: no member removed or renamed, no signature changed, `mod_version` stays 0.6.1 until the release. **Visible default
 changes:** only for ideas (`JobRow.offer`): the Jobs panel's detail pane now draws an idea with the still idle paper dot and "idea", as its
-list row already did, not the "working" dot and "queued". No consumer publishes ideas today except through Steward's offers, so Architect
-and AgentCraft Worlds draw exactly as in 0.6.1. Notify AgentCraft Worlds, Architect and Steward.
+list row already did, not the "working" dot and "queued". Only rows published with `offer(true)` change; every other row, pill and
+overlay draws exactly as in 0.6.1. Notify AgentCraft Worlds, Architect and Steward.
 
 **New API**
 - `ui.StatusDots` (pure): the six status families' colours in `GhostPalette.Palette.STANDARD` (today's, the default) and `OKABE_ITO`
-  (Okabe &amp; Ito's colour-blind-safe hues, `status_okabe` / `status_okabe_paper` in ui-style.json), `sprite(...)`, `minDeltaE(...)`.
+  (Okabe and Ito's colour-blind-safe hues, `status_okabe` / `status_okabe_paper` in ui-style.json), `sprite(...)`, `minDeltaE(...)`.
   Sprites `dot_<family>_okabe.png`, `_okabe_halo.png`, `_okabe_paper.png`. Under protan, deutan and tritan simulation the Okabe dots are at
   least ΔE76 22.2 apart on the HUD and 9.9 on paper (the standard dots: 5.7 and 2.8); the paper set is at least 3:1 on every paper surface.
   `StatusDotsTest`.
@@ -20,7 +20,7 @@ and AgentCraft Worlds draw exactly as in 0.6.1. Notify AgentCraft Worlds, Archit
   building pill and the nameplate.
 - `JobBoardModel.dotFamily(JobState)`, `dotFamily(JobRow)` (an idea is idle) and `statusLabel(JobRow)` ("idea" for an idea).
 - `KeysOverlay.helpPlace(String)`, `footer(String)`, `moreTerms(IntFunction<String>)` (fluent) and `footer()` / `moreTerms(int)`: the footer
-  and the "+N more" line, Architect's "Status &gt; Help" wording by default. `HelpKeys.CLOSE_HINT`, `DEFAULT_HELP_PLACE`, `DEFAULT_FOOTER`,
+  and the "+N more" line, Architect's `Status > Help` wording by default. `HelpKeys.CLOSE_HINT`, `DEFAULT_HELP_PLACE`, `DEFAULT_FOOTER`,
   `footer(place)`, `moreTerms(n, place)`.
 - `HelpKeys.closeHit(glyphX, glyphW, lineY, lineH)`, `inside(box, mx, my)`, `MIN_HIT` (20).
 
